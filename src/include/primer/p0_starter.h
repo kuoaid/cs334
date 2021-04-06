@@ -26,7 +26,7 @@ class Matrix {
   Matrix(int r, int c) { 
       rows = r;
       cols = c;
-      linear = new array[r*c]
+      linear = new T[r*c];
   }
 
   // # of rows in the matrix
@@ -55,50 +55,56 @@ class Matrix {
   virtual void MatImport(T *arr) = 0;
 
   // TODO(P0): Add implementation
-  virtual ~Matrix() = default;
+  virtual ~Matrix(){
+    delete[] linear;
+  }
 };
 
 template <typename T>
 class RowMatrix : public Matrix<T> {
  public:
   // TODO(P0): Add implementation
-  RowMatrix(int r, int c) : Matrix<T>(r, c) { 
-      data_ = new array[r][c];
+  RowMatrix(int r, int c) : Matrix<T>(r, c) {
+    data_= new T*[Matrix<T>::rows];
+    for(int i = 0, l=0; i < GetRows(); i++, l=l+GetColumns()){
+      data_[i]=&(this->linear[l]);
+    }
   }
 
-  // TODO(P0): Add implementation
-  int GetRows() override { return rows; }
 
   // TODO(P0): Add implementation
-  int GetColumns() override { return columns; }
+  int GetRows() override { return Matrix<T>::rows; }
 
   // TODO(P0): Add implementation
-  T GetElem(int i, int j) override { return data_[i][j]; }
+  int GetColumns() override { return Matrix<T>::cols; }
 
   // TODO(P0): Add implementation
+  T GetElem(int i, int j) override {
+    return *(data_[i]+j);
+    }
+
   void SetElem(int i, int j, T val) override {
-    //int index = (i - 1) * rows + (cols - 1);
-    data_[i][j] = val;
+    *(data_[i]+j) = val;
   }
 
   // TODO(P0): Add implementation
   void MatImport(T *arr) override {
-    for (int r = 0, r < rows, r++) {
-      for (int c = 0, c < columns, c++) {
-        arrIndex = (r)*rows + (c);
-        data_[r][c] = arr[arrIndex];
-      }
-    }
+    int allocatedSpace = this->rows*this->cols*sizeof(T);
+    memcpy(this->linear, arr, allocatedSpace);
   }
 
   // TODO(P0): Add implementation
-  ~RowMatrix() override = default;
+  ~RowMatrix() override{
+    delete[] data_;
+  };
 
- private:
+ private://!!!!MAKE PRIVATE
   // 2D array containing the elements of the matrix in row-major format
-  // TODO(P0): Allocate the array of row pointers in the constructor. Use these pointers
-  // to point to corresponding elements of the 'linear' array.
+  // TODO(P0): 
+  // Allocate the array of row pointers in the constructor.
+  // Use these pointers to point to corresponding elements of the 'linear' array.
   // Don't forget to free up the array in the destructor.
+  
   T **data_;
 };
 
