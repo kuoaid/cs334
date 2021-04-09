@@ -22,47 +22,48 @@ TEST(StarterTest, DISABLED_SampleTest) {
   EXPECT_EQ(a, 1);
 }
 
-TEST(StarterTest, DISABLED_printMatrix){
+TEST(StarterTest, DISABLED_printMatrix) {
   int arr1[9] = {1, 2, 3, 4, 5, 6, 8, 4, 1};
   std::unique_ptr<RowMatrix<int>> mat1_ptr{new RowMatrix<int>(3, 3)};
-  mat1_ptr->MatImport(&arr1[0]);//pass in reference of arr1
+  mat1_ptr->MatImport(&arr1[0]);  // pass in reference of arr1
 
-  std::cout<<"ROW: "<<mat1_ptr->GetRows()<<"\n";
-  std::cout<<"COLUMN: "<<mat1_ptr->GetColumns()<<"\n";
-  for(int i = 0; i<mat1_ptr->GetRows(); i++){
-    for(int j = 0; j<mat1_ptr->GetColumns(); j++){
-      std::cout<<mat1_ptr->GetElem(i,j)<<", ";
+  std::cout << "ROW: " << mat1_ptr->GetRows() << "\n";
+  std::cout << "COLUMN: " << mat1_ptr->GetColumns() << "\n";
+  for (int i = 0; i < mat1_ptr->GetRows(); i++) {
+    for (int j = 0; j < mat1_ptr->GetColumns(); j++) {
+      std::cout << mat1_ptr->GetElem(i, j) << ", ";
     }
-    std::cout<<"\n";
+    std::cout << "\n";
   }
 
-  std::cout<<"\n \n";
+  std::cout << "\n \n";
 }
 
-TEST(StarterTest, DISABLED_printAddedMatrix){
+TEST(StarterTest, DISABLED_printAddedMatrix) {
   int arr1[9] = {22, 123, 31, 74, 68, 12, 15, 33, 11};
   std::unique_ptr<RowMatrix<int>> mat1_ptr{new RowMatrix<int>(3, 3)};
-  mat1_ptr->MatImport(&arr1[0]);//pass in reference of arr1
+  mat1_ptr->MatImport(&arr1[0]);  // pass in reference of arr1
 
   std::unique_ptr<RowMatrix<int>> mat2_ptr{new RowMatrix<int>(3, 3)};
-  mat2_ptr->MatImport(&arr1[0]);//pass in reference of arr1
+  mat2_ptr->MatImport(&arr1[0]);  // pass in reference of arr1
 
-  std::unique_ptr<RowMatrix<int>> sum_ptr = RowMatrixOperations<int>::AddMatrices(std::move(mat1_ptr), std::move(mat2_ptr));
+  std::unique_ptr<RowMatrix<int>> sum_ptr =
+      RowMatrixOperations<int>::AddMatrices(std::move(mat1_ptr), std::move(mat2_ptr));
 
-  std::cout<<"CUSTOM TEST BEGINS\n \n";
-  std::cout<<"ROW: "<<sum_ptr->GetRows()<<"\n";
-  std::cout<<"COLUMN: "<<sum_ptr->GetColumns()<<"\n";
-  for(int i = 0; i<sum_ptr->GetRows(); i++){
-    for(int j = 0; j<sum_ptr->GetColumns(); j++){
-      std::cout<<sum_ptr->GetElem(i,j)<<", ";
+  std::cout << "CUSTOM TEST BEGINS\n \n";
+  std::cout << "ROW: " << sum_ptr->GetRows() << "\n";
+  std::cout << "COLUMN: " << sum_ptr->GetColumns() << "\n";
+  for (int i = 0; i < sum_ptr->GetRows(); i++) {
+    for (int j = 0; j < sum_ptr->GetColumns(); j++) {
+      std::cout << sum_ptr->GetElem(i, j) << ", ";
     }
-    std::cout<<"\n";
+    std::cout << "\n";
   }
 
-  std::cout<<"\n \n";
+  std::cout << "\n \n";
 }
 
-TEST(StarterTest, DISABLED_GemmMatricesTest) {
+TEST(StarterTest, GemmMatricesTest) {
   // Multiply
   int arr1[6] = {1, 2, 3, 4, 5, 6};
   std::unique_ptr<RowMatrix<int>> mat1_ptr{new RowMatrix<int>(2, 3)};
@@ -157,4 +158,4 @@ TEST(StarterTest, MultiplyMatricesTest) {
     }
   }
 }
-}  // namespace bustub
+}
