@@ -28,9 +28,8 @@ class LRUReplacer : public Replacer {
  public:
   /**
    * Create a new LRUReplacer.
-   * @param num_pages the maximum number of pages the LRUReplacer will be required to store
    */
-  explicit LRUReplacer(size_t num_pages);
+  LRUReplacer();
 
   /**
    * Destroys the LRUReplacer.
@@ -46,7 +45,7 @@ class LRUReplacer : public Replacer {
   size_t Size() override;
 
  private:
-  // TODO(student): implement me!
+  std::list<frame_id_t> unpinned;
 };
 
 }  // namespace bustub
