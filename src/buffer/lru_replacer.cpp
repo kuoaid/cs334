@@ -11,19 +11,48 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/lru_replacer.h"
+#include <algorithm>
+#include <list>
+#include <iostream>
+#include <mutex>  // NOLINT
 
 namespace bustub {
 
-LRUReplacer::LRUReplacer(size_t num_pages) {}
-
+LRUReplacer::LRUReplacer() = default;
 LRUReplacer::~LRUReplacer() = default;
 
-bool LRUReplacer::Victim(frame_id_t *frame_id) { return false; }
+std::mutex latch;
 
-void LRUReplacer::Pin(frame_id_t frame_id) {}
+bool LRUReplacer::Victim(frame_id_t *frame_id) {
+    std::lock_guard<std::mutex> guardo(latch);
+    if (unpinned.empty()) {
+        *frame_id = -1;
+        return false;
+    }
+    *frame_id = *unpinned.begin();
+    unpinned.remove(*unpinned.begin());
+    return true;
+}
 
-void LRUReplacer::Unpin(frame_id_t frame_id) {}
+void LRUReplacer::Pin(frame_id_t frame_id) {
+    std::lock_guard<std::mutex> guardo(latch);
+    bool unpinned_contains_frame_id = std::find(unpinned.begin(), unpinned.end(), frame_id) != unpinned.end();
+    if (unpinned_contains_frame_id) {
+        unpinned.remove(frame_id);
+    }
+}
 
-size_t LRUReplacer::Size() { return 0; }
+void LRUReplacer::Unpin(frame_id_t frame_id) {
+    std::lock_guard<std::mutex> guardo(latch);
+    bool unpinned_contains_frame_id = std::find(unpinned.begin(), unpinned.end(), frame_id) == unpinned.end();
+    if (unpinned_contains_frame_id) {
+        unpinned.push_back(frame_id);
+    }
+}
+
+size_t LRUReplacer::Size() {
+    std::lock_guard<std::mutex> guardo(latch);
+    return unpinned.size();
+}
 
 }  // namespace bustub
