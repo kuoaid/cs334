@@ -58,16 +58,15 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
  * keys return false, otherwise return true.
  */
 INDEX_TEMPLATE_ARGUMENTS
-bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) { 
+bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) {
   assert(transaction != nullptr);
-  if(IsEmpty()){
-    StartNewTree(key,value);
-    return InsertIntoLeaf(key,value,transaction);
+  if (IsEmpty()) {
+    StartNewTree(key, value);
+    return InsertIntoLeaf(key, value, transaction);
+  } else {
+    return InsertIntoLeaf(key, value, transaction);
   }
-  else{
-    return InsertIntoLeaf(key,value,transaction);
-    }
-  }
+}
 
 /*
  * Insert constant key & value pair into an empty tree
@@ -77,27 +76,25 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
  */
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
-  page_id_t *newId;
+  page_id_t newId;
 
-  Page *newRoot = buffer_pool_manager_->NewPage(newId);
+  Page *newRoot = buffer_pool_manager_->NewPage(&newId);
 
-  //accessing the root
+  // accessing the root
   B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
 
-  
-  
-  //init
-  root -> Init(newId);
+  // init
+  root->Init(newId);
 
-  //Insert this
+  // Insert this
   Transaction *newTrans = new Transaction(0);
   Insert(key, value, newTrans);
 
-  //update tree info
+  // update tree info
   root_page_id_ = newId;
   UpdateRootPageId(true);
 
-  //finish accessing the root
+  // finish accessing the root
   buffer_pool_manager_->UnpinPage(newId, true);
 }
 

@@ -121,10 +121,10 @@ class BufferPoolManager {
     return frame_id;
   }
 
-  void InitNewPage(frame_id_t frame_id, page_id_t page_id){
-      pages_[frame_id].page_id_ = page_id;
-      pages_[frame_id].pin_count_ = 1;
-      pages_[frame_id].is_dirty_ = false;
+  void InitNewPage(frame_id_t frame_id, page_id_t page_id) {
+    pages_[frame_id].page_id_ = page_id;
+    pages_[frame_id].pin_count_ = 1;
+    pages_[frame_id].is_dirty_ = false;
   }
 };
 }  // namespace bustub

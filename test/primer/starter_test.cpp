@@ -158,4 +158,4 @@ TEST(StarterTest, MultiplyMatricesTest) {
     }
   }
 }
-}
+}  // namespace bustub
