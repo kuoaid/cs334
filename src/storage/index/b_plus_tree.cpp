@@ -81,7 +81,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   Page *newRoot = buffer_pool_manager_->NewPage(&newId);
 
   // accessing the root
-  B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
+  B_PLUS_TREE_INTERNAL_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_INTERNAL_PAGE_TYPE *>(newRoot->GetData());
 
   // init
   root->Init(newId);
@@ -108,7 +108,17 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
-  return false;
+  Page *page = FindLeafPage(key, false);
+  BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
+  
+  ValueType v = value;
+  if(leaf->Lookup(key, &v, comparator_)){
+    return false;
+  }else{
+    leaf->Insert(key, value, comparator_);
+    return true;
+  }
 }
 
 /*
@@ -239,7 +249,24 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() { return INDEXITERATOR_TYPE(); }
  * the left most leaf page
  */
 INDEX_TEMPLATE_ARGUMENTS
-Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost) { return nullptr; }
+Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost) { 
+  if(IsEmpty()){
+    return nullptr;
+  }
+
+page_id_t page_id= root_page_id_;
+
+Page *page = buffer_pool_manager_->FetchPage(page_id);
+BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+while(!bppage->IsLeafPage()){
+    InternalPage *internal = reinterpret_cast<InternalPage *>(bppage);
+    page_id_t nextDest = internal->Lookup(key, comparator_);
+    Page *page = buffer_pool_manager_->FetchPage(nextDest);
+    bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  }
+return page;
+buffer_pool_manager_->UnpinPage(page_id, true);  // or false if the page was not modified
+}
 
 /*
  * Update/Insert root page id in header page(where page_id = 0, header_page is
