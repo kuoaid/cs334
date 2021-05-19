@@ -9,9 +9,11 @@
 // Copyright (c) 2015-2020, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
+
 #pragma once
 
 #include <memory>
+#include <utility>
 
 namespace bustub {
 
@@ -33,6 +35,8 @@ class Matrix {
   // # of Columns in the matrix
   int cols;
   // Flattened array containing the elements of the matrix
+  // TODO(P0) : Allocate the array in the constructor. Don't forget to free up
+  // the array in the destructor.
   T *linear;
 
  public:
@@ -60,40 +64,43 @@ class RowMatrix : public Matrix<T> {
  public:
   // TODO(P0): Add implementation
   RowMatrix(int r, int c) : Matrix<T>(r, c) {
-    data_ = new T *[Matrix<T>::rows];
-    for (int i = 0, l = 0; i < r; i++, l = l + c) {
-      data_[i] = &(this->linear[l]);
+    data_ = new T *[r];
+    for (int i = 0; i < r; i++) {
+      data_[i] = this->linear + i * c;
     }
   }
 
   // TODO(P0): Add implementation
-  int GetRows() override { return Matrix<T>::rows; }
+  int GetRows() override { return this->rows; }
 
   // TODO(P0): Add implementation
-  int GetColumns() override { return Matrix<T>::cols; }
+  int GetColumns() override { return this->cols; }
 
   // TODO(P0): Add implementation
-  T GetElem(int i, int j) override {
-    int linearPosition = i * this->GetColumns() + j;
-    return (Matrix<T>::linear[linearPosition]);
-  }
+  T GetElem(int i, int j) override { return data_[i][j]; }
 
-  void SetElem(int i, int j, T val) override {
-    int linearPosition = i * this->GetColumns() + j;
-    Matrix<T>::linear[linearPosition] = val;
-  }
+  // TODO(P0): Add implementation
+  void SetElem(int i, int j, T val) override { data_[i][j] = val; }
 
   // TODO(P0): Add implementation
   void MatImport(T *arr) override {
-    int allocatedSpace = this->rows * this->cols * sizeof(T);
-    memcpy(this->linear, arr, allocatedSpace);
+    int k = 0;
+    for (int i = 0; i < this->rows; i++) {
+      for (int j = 0; j < this->cols; j++) {
+        data_[i][j] = arr[k];
+        k++;
+      }
+    }
   }
 
   // TODO(P0): Add implementation
-  ~RowMatrix() override { delete[] data_; };
+  ~RowMatrix() override { delete[] data_; }
 
  private:
   // 2D array containing the elements of the matrix in row-major format
+  // TODO(P0): Allocate the array of row pointers in the constructor. Use these pointers
+  // to point to corresponding elements of the 'linear' array.
+  // Don't forget to free up the array in the destructor.
   T **data_;
 };
 
@@ -104,13 +111,20 @@ class RowMatrixOperations {
   // Return nullptr if dimensions mismatch for input matrices.
   static std::unique_ptr<RowMatrix<T>> AddMatrices(std::unique_ptr<RowMatrix<T>> mat1,
                                                    std::unique_ptr<RowMatrix<T>> mat2) {
-    std::unique_ptr<RowMatrix<T>> result_ptr{new RowMatrix<int>(mat1->GetRows(), mat1->GetColumns())};
+    // TODO(P0): Add code
+    if (mat1->GetRows() != mat2->GetRows() || mat1->GetColumns() != mat2->GetColumns()) {
+      return std::unique_ptr<RowMatrix<T>>(nullptr);
+    }
+    std::unique_ptr<RowMatrix<T>> result_ptr{new RowMatrix<T>(mat1->GetRows(), mat1->GetColumns())};
+    T linearArray[mat1->GetRows() * mat1->GetColumns()];
+    int k = 0;
     for (int i = 0; i < mat1->GetRows(); i++) {
       for (int j = 0; j < mat1->GetColumns(); j++) {
-        int currSum = mat1->GetElem(i, j) + mat2->GetElem(i, j);
-        result_ptr->SetElem(i, j, currSum);
+        linearArray[k] = mat1->GetElem(i, j) + mat2->GetElem(i, j);
+        k++;
       }
     }
+    result_ptr->MatImport(&linearArray[0]);
     return result_ptr;
   }
 
@@ -118,16 +132,25 @@ class RowMatrixOperations {
   // Return nullptr if dimensions mismatch for input matrices.
   static std::unique_ptr<RowMatrix<T>> MultiplyMatrices(std::unique_ptr<RowMatrix<T>> mat1,
                                                         std::unique_ptr<RowMatrix<T>> mat2) {
-    std::unique_ptr<RowMatrix<T>> result_ptr{new RowMatrix<int>(mat1->GetRows(), mat2->GetColumns())};
+    // TODO(P0): Add code
+    if (mat1->GetColumns() != mat2->GetRows()) {
+      return std::unique_ptr<RowMatrix<T>>(nullptr);
+    }
+    std::unique_ptr<RowMatrix<T>> result_ptr{new RowMatrix<T>(mat1->GetRows(), mat2->GetColumns())};
+    T linearArray[mat1->GetRows() * mat2->GetColumns()];
+    for (int i = 0; i < mat1->GetRows() * mat2->GetColumns(); i++) {
+      linearArray[i] = 0;
+    }
+    int l = 0;
     for (int i = 0; i < mat1->GetRows(); i++) {
       for (int j = 0; j < mat2->GetColumns(); j++) {
-        int dotProduct = 0;
-        for (int k = 0; k < mat1->GetColumns(); k++) {
-          dotProduct += mat1->GetElem(i, k) * mat2->GetElem(k, j);
+        for (int k = 0; k < mat2->GetRows(); k++) {
+          linearArray[l] = linearArray[l] + mat1->GetElem(i, k) * mat2->GetElem(k, j);
         }
-        result_ptr->SetElem(i, j, dotProduct);
+        l++;
       }
     }
+    result_ptr->MatImport(&linearArray[0]);
     return result_ptr;
   }
 
@@ -136,31 +159,48 @@ class RowMatrixOperations {
   static std::unique_ptr<RowMatrix<T>> GemmMatrices(std::unique_ptr<RowMatrix<T>> matA,
                                                     std::unique_ptr<RowMatrix<T>> matB,
                                                     std::unique_ptr<RowMatrix<T>> matC) {
-    if (matC->GetRows() != matA->GetRows() || matC->GetColumns() != matB->GetColumns() ||
-        matA->GetColumns() != matB->GetRows() || matA->GetRows() != matB->GetColumns()) {
+    // TODO(P0): Add code
+    /*if (matA->GetRows() != matB->GetRows() || matA->GetColumns() != matB->GetColumns()) {
       return std::unique_ptr<RowMatrix<T>>(nullptr);
     }
-
-    std::unique_ptr<RowMatrix<T>> multiplied_ptr{new RowMatrix<int>(matA->GetRows(), matB->GetColumns())};
+    std::unique_ptr<RowMatrix<T>> result_ptr1{new RowMatrix<T>(matA->GetRows(), matA->GetColumns())};
+    T linearArray[matA->GetRows() * matA->GetColumns()];
+    int k = 0;
     for (int i = 0; i < matA->GetRows(); i++) {
-      for (int j = 0; j < matB->GetColumns(); j++) {
-        int dotProduct = 0;
-        for (int k = 0; k < matA->GetColumns(); k++) {
-          dotProduct += matA->GetElem(i, k) * matB->GetElem(k, j);
-        }
-        multiplied_ptr->SetElem(i, j, dotProduct);
+      for (int j = 0; j < matA->GetColumns(); j++) {
+        linearArray[k] = matA->GetElem(i, j) + matB->GetElem(i, j);
+        k++;
       }
     }
+    result_ptr1->MatImport(&linearArray[0]);
 
-    std::unique_ptr<RowMatrix<T>> result_ptr{new RowMatrix<int>(matC->GetRows(), matC->GetColumns())};
-    for (int i = 0; i < matC->GetRows(); i++) {
+    if (result_ptr1->GetColumns() != matC->GetRows()) {
+      return std::unique_ptr<RowMatrix<T>>(nullptr);
+    }
+    std::unique_ptr<RowMatrix<T>> result_ptr2{new RowMatrix<T>(result_ptr1->GetRows(), matC->GetColumns())};
+    T linearArray2[result_ptr1->GetRows() * matC->GetColumns()];
+    for (int i = 0; i < result_ptr1->GetRows() * matC->GetColumns(); i++) {
+      linearArray2[i] = 0;
+    }
+    int l = 0;
+    for (int i = 0; i < result_ptr1->GetRows(); i++) {
       for (int j = 0; j < matC->GetColumns(); j++) {
-        int currSum = multiplied_ptr->GetElem(i, j) + matC->GetElem(i, j);
-        result_ptr->SetElem(i, j, currSum);
+        for (int k = 0; k < matC->GetRows(); k++) {
+          linearArray2[l] = linearArray2[l] + result_ptr1->GetElem(i, k) * matC->GetElem(k, j);
+        }
+        l++;
       }
     }
+    result_ptr2->MatImport(&linearArray2[0]);
+    return result_ptr2;*/
 
-    return result_ptr;
+    std::unique_ptr<RowMatrix<T>> result_ptr1{new RowMatrix<T>(matA->GetRows(), matB->GetColumns())};
+    result_ptr1 = MultiplyMatrices(std::move(matA), std::move(matB));
+    if (result_ptr1 == nullptr) {
+      return result_ptr1;
+    }
+
+    return AddMatrices(std::move(result_ptr1), std::move(matC));
   }
 };
 }  // namespace bustub
