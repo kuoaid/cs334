@@ -31,7 +31,7 @@ BPLUSTREE_TYPE::BPlusTree(std::string name, BufferPoolManager *buffer_pool_manag
  * @return true if there is nothing stored in the b+ tree, false otherwise
  */
 INDEX_TEMPLATE_ARGUMENTS
-bool BPLUSTREE_TYPE::IsEmpty() const { return true; }
+bool BPLUSTREE_TYPE::IsEmpty() const { return root_page_id_ == INVALID_PAGE_ID; }
 
 /*****************************************************************************
  * SEARCH
@@ -58,7 +58,16 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
  * keys return false, otherwise return true.
  */
 INDEX_TEMPLATE_ARGUMENTS
-bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) { return false; }
+bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) { 
+  assert(transaction != nullptr);
+  if(IsEmpty){
+    startNewTree(key,value,transaction);
+    return InsertIntoLeaf(key,value,transaction);
+  }
+  else{
+    return InsertIntoLeaf(key,value,transaction);
+    }
+  }
 
 /*
  * Insert constant key & value pair into an empty tree
@@ -67,7 +76,21 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
  * tree's root page id and insert entry directly into leaf page.
  */
 INDEX_TEMPLATE_ARGUMENTS
-void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {}
+void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
+  Page *newRoot = buffer_pool_manager_->NewPage(newId);
+  //accessing the root
+  B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
+
+  page_id_t newId;
+  
+  root -> Init(newId);
+  Insert->(key, value, nullptr)
+
+  root_page_id_ = newId;
+  UpdateRootPageId(true);
+  
+  buffer_pool_manager_->UnpinPage(newId, true);
+}
 
 /*
  * Insert constant key & value pair into leaf page
