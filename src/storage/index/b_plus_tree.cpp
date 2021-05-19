@@ -78,17 +78,24 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   Page *newRoot = buffer_pool_manager_->NewPage(newId);
+
   //accessing the root
   B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
 
   page_id_t newId;
   
+  //init
   root -> Init(newId);
-  Insert->(key, value, nullptr)
 
+  //Insert this
+  Transaction *newTrans = new Transaction(0);
+  Insert->(key, value, newTrans);
+
+  //update tree info
   root_page_id_ = newId;
   UpdateRootPageId(true);
-  
+
+  //finish accessing the root
   buffer_pool_manager_->UnpinPage(newId, true);
 }
 
