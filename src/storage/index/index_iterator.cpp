@@ -11,27 +11,38 @@ namespace bustub {
  * NOTE: you can change the destructor/constructor method here
  * set your own input parameters
  */
-// INDEX_TEMPLATE_ARGUMENTS
-// INDEXITERATOR_TYPE::IndexIterator() {
-
-// }
-
-// INDEX_TEMPLATE_ARGUMENTS
-// INDEXITERATOR_TYPE::~IndexIterator() {
-
-// }
+INDEX_TEMPLATE_ARGUMENTS
+INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, BufferPoolManager *bmp):leaf_(leaf), index_(index), bmp_(bmp) {}
 
 INDEX_TEMPLATE_ARGUMENTS
-bool INDEXITERATOR_TYPE::isEnd() { throw std::runtime_error("unimplemented"); }
+INDEXITERATOR_TYPE::~IndexIterator() {
+  if (leaf_ != nullptr) {
+    Page *page = bmp_->FetchPage(leaf_->GetPageId());
+    page->RUnlatch();
+    bmp_->UnpinPage(leaf_->GetPageId(), false);
+    bmp_->UnpinPage(leaf_->GetPageId(), false);
+  }
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const { throw std::runtime_error("unimplemented"); }
+bool INDEXITERATOR_TYPE::isEnd() {
+  return leaf_->next_page_id == INVALID_PAGE_ID;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const { throw std::runtime_error("unimplemented"); }
+bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
+  return itr->index_ == index_;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-const MappingType &INDEXITERATOR_TYPE::operator*() { throw std::runtime_error("unimplemented"); }
+bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
+  return itr->index_ != index_;
+}
+
+INDEX_TEMPLATE_ARGUMENTS
+const MappingType &INDEXITERATOR_TYPE::operator*() {
+  return leaf_->array[index_];
+}
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {

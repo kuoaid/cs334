@@ -223,7 +223,11 @@ void BPLUSTREE_TYPE::AdjustRoot(BPlusTreePage *old_root_node) {}
  * @return : index iterator
  */
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() { return INDEXITERATOR_TYPE(); }
+INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() {
+  KeyType invalidKey;
+  auto start_leaf = FindLeafPage(invalidKey, true);
+  return INDEXITERATOR_TYPE(start_leaf, 0, buffer_pool_manager_);
+}
 
 /*
  * Input parameter is low key, find the leaf page that contains the input key
@@ -231,7 +235,22 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() { return INDEXITERATOR_TYPE(); }
  * @return : index iterator
  */
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) { return INDEXITERATOR_TYPE(); }
+INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
+  auto start_leaf = FindLeafPage(key, true);
+    int start_index = 0;
+    if (start_leaf != nullptr) {
+      // KeyIndex()∑µªÿµƒ «key”¶∏√≤Â»ÎµΩµƒindex
+      int index = start_leaf->KeyIndex(key, comparator_);
+      if (start_leaf->GetSize() > 0 && index < start_leaf->GetSize() && comparator_(key, start_leaf->GetItem(index).first) == 0) {
+        //key‘⁄µ±«∞leaf÷–¥Ê‘⁄
+        start_index = index;
+      } else {
+        //leaf÷–≤ª¥Ê‘⁄key«Èøˆœ¬£¨¡Óindex=start_index->GetSize()
+        start_index = start_leaf->GetSize();
+      }
+    }
+  return INDEXITERATOR_TYPE(start_leaf, start_index, buffer_pool_manager_);
+}
 
 /*
  * Input parameter is void, construct an index iterator representing the end
@@ -239,8 +258,13 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) { return INDEXITERA
  * @return : index iterator
  */
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() { return INDEXITERATOR_TYPE(); }
-
+INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
+  INDEXITERATOR_TYPE iterator = begin();
+  while (iterator.isEnd() == false) {
+    iterator++;
+  }
+  return iterator;
+}
 /*****************************************************************************
  * UTILITIES AND DEBUG
  *****************************************************************************/
