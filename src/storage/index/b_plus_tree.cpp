@@ -77,12 +77,14 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
  */
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
+  page_id_t newId;
+  
   Page *newRoot = buffer_pool_manager_->NewPage(newId);
 
   //accessing the root
   B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
 
-  page_id_t newId;
+  
   
   //init
   root -> Init(newId);
