@@ -61,7 +61,7 @@ INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) { 
   assert(transaction != nullptr);
   if(IsEmpty){
-    StartNewTree(key,value,transaction);
+    StartNewTree(key,value);
     return InsertIntoLeaf(key,value,transaction);
   }
   else{
