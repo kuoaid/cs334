@@ -42,25 +42,17 @@ bool BPLUSTREE_TYPE::IsEmpty() const { return root_page_id_ == INVALID_PAGE_ID; 
  * This method is used for point query
  * @return : true means key exists
  */
+
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction) {
-  return false;
-  // if(IsEmpty()){
-  //   return false;
-  // }
-
-  // page_id_t page_id=root_page_id_;
-  // Page *page = buffer_pool_manager_->FetchPage(page_id);
-
-  // BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
-
-  // if (bppage->IsLeafPage()) {
-  //   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
-  //   // do things with a leaf page
-  //   } else {
-  //   InternalPage *internal = reinterpret_cast<InternalPage *>(bppage);
-  //   }
+  if(IsEmpty()){
+    return false;
+  }
+  B_PLUS_TREE_LEAF_PAGE_TYPE *leaf = FindLeafPage(key, false);
+  result.resize(1);
+  return leaf->Lookup(key, result[0], comparator_);
 }
+
 /*****************************************************************************
  * INSERTION
  *****************************************************************************/
@@ -95,7 +87,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   Page *newRoot = buffer_pool_manager_->NewPage(&newId);
 
   // accessing the root
-  B_PLUS_TREE_INTERNAL_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_INTERNAL_PAGE_TYPE *>(newRoot->GetData());
+  B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
 
   // init
   root->Init(newId);
