@@ -45,8 +45,22 @@ bool BPLUSTREE_TYPE::IsEmpty() const { return root_page_id_ == INVALID_PAGE_ID; 
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction) {
   return false;
-}
+  // if(IsEmpty()){
+  //   return false;
+  // }
 
+  // page_id_t page_id=root_page_id_;
+  // Page *page = buffer_pool_manager_->FetchPage(page_id);
+
+  // BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+
+  // if (bppage->IsLeafPage()) {
+  //   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
+  //   // do things with a leaf page
+  //   } else {
+  //   InternalPage *internal = reinterpret_cast<InternalPage *>(bppage);
+  //   }
+}
 /*****************************************************************************
  * INSERTION
  *****************************************************************************/
@@ -277,14 +291,19 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost) {
   if(IsEmpty()){
     return nullptr;
   }
-
 page_id_t page_id= root_page_id_;
 
 Page *page = buffer_pool_manager_->FetchPage(page_id);
 BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
 while(!bppage->IsLeafPage()){
     InternalPage *internal = reinterpret_cast<InternalPage *>(bppage);
-    page_id_t nextDest = internal->Lookup(key, comparator_);
+    page_id_t nextDest;
+    if(leftMost){
+      nextDest = internal->ValueAt(0);
+    }else{
+      nextDest = internal->Lookup(key, comparator_);
+    }
+    
     Page *page = buffer_pool_manager_->FetchPage(nextDest);
     bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   }
