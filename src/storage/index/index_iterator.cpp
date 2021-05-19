@@ -26,22 +26,22 @@ INDEXITERATOR_TYPE::~IndexIterator() {
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::isEnd() {
-  return leaf_->next_page_id == INVALID_PAGE_ID;
+  return leaf_->GetNextPageId() == INVALID_PAGE_ID;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
-  return itr->index_ == index_;
+  return itr.index_ == index_;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
-  return itr->index_ != index_;
+  return itr.index_ != index_;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 const MappingType &INDEXITERATOR_TYPE::operator*() {
-  return leaf_->array[index_];
+  return leaf_->GetItem(index_);
 }
 
 INDEX_TEMPLATE_ARGUMENTS

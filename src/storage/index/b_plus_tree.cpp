@@ -238,9 +238,11 @@ void BPLUSTREE_TYPE::AdjustRoot(BPlusTreePage *old_root_node) {}
  */
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() {
-  KeyType invalidKey;
-  auto start_leaf = FindLeafPage(invalidKey, true);
-  return INDEXITERATOR_TYPE(start_leaf, 0, buffer_pool_manager_);
+  KeyType key;
+  auto start_leaf = FindLeafPage(key, true);
+  BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
+  LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);
+  return INDEXITERATOR_TYPE(start_leaf_lf, 0, buffer_pool_manager_);
 }
 
 /*
@@ -251,19 +253,20 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() {
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
   auto start_leaf = FindLeafPage(key, true);
-    int start_index = 0;
-    if (start_leaf != nullptr) {
-      // KeyIndex()∑µªÿµƒ «key”¶∏√≤Â»ÎµΩµƒindex
-      int index = start_leaf->KeyIndex(key, comparator_);
-      if (start_leaf->GetSize() > 0 && index < start_leaf->GetSize() && comparator_(key, start_leaf->GetItem(index).first) == 0) {
-        //key‘⁄µ±«∞leaf÷–¥Ê‘⁄
-        start_index = index;
-      } else {
-        //leaf÷–≤ª¥Ê‘⁄key«Èøˆœ¬£¨¡Óindex=start_index->GetSize()
-        start_index = start_leaf->GetSize();
-      }
+  BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
+  LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);
+  int start_index = 0;
+  if (start_leaf_lf != nullptr) {
+    //
+    int index = start_leaf_lf->KeyIndex(key, comparator_);
+    if (start_leaf_lf->GetSize() > 0 && index < start_leaf_lf->GetSize() && comparator_(key, start_leaf_lf->GetItem(index).first) == 0) {
+      //
+      start_index = index;
+    } else {
+      start_index = start_leaf_lf->GetSize();
     }
-  return INDEXITERATOR_TYPE(start_leaf, start_index, buffer_pool_manager_);
+  }
+  return INDEXITERATOR_TYPE(start_leaf_lf, start_index, buffer_pool_manager_);
 }
 
 /*
@@ -275,7 +278,7 @@ INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   INDEXITERATOR_TYPE iterator = begin();
   while (iterator.isEnd() == false) {
-    iterator++;
+    ++iterator;
   }
   return iterator;
 }
