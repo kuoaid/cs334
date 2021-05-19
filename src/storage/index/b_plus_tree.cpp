@@ -61,7 +61,7 @@ INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) { 
   assert(transaction != nullptr);
   if(IsEmpty){
-    startNewTree(key,value,transaction);
+    StartNewTree(key,value,transaction);
     return InsertIntoLeaf(key,value,transaction);
   }
   else{
@@ -89,7 +89,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
 
   //Insert this
   Transaction *newTrans = new Transaction(0);
-  Insert->(key, value, newTrans);
+  Insert(key, value, newTrans);
 
   //update tree info
   root_page_id_ = newId;
