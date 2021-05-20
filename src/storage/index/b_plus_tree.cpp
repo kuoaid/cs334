@@ -48,9 +48,10 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   if(IsEmpty()){
     return false;
   }
-  B_PLUS_TREE_LEAF_PAGE_TYPE *leaf = FindLeafPage(key, false);
-  result.resize(1);
-  return leaf->Lookup(key, result[0], comparator_);
+  Page *page = FindLeafPage(key, false);
+  BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
+  return leaf->Lookup(key, &(result->at(1)), comparator_);
 }
 
 /*****************************************************************************
