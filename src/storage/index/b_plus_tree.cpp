@@ -51,7 +51,9 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   Page *page = FindLeafPage(key, false);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
-  return leaf->Lookup(key, &(result->at(1)), comparator_);
+
+  result->resize(1);
+  return leaf->Lookup(key, &(result->at(0)), comparator_);
 }
 
 /*****************************************************************************
@@ -69,6 +71,7 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   assert(transaction != nullptr);
   if (IsEmpty()) {
     StartNewTree(key, value);
+    LOG_INFO("after SNT completion");
     return InsertIntoLeaf(key, value, transaction);
   } else {
     return InsertIntoLeaf(key, value, transaction);
@@ -84,25 +87,24 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   page_id_t newId;
+  //LOG_INFO("getting to newroot");
+  Page *newRoot = buffer_pool_manager_->NewPage(&newId);  
 
-  Page *newRoot = buffer_pool_manager_->NewPage(&newId);
-
+  if(newRoot==nullptr){
+    throw std::bad_alloc();
+  }
   // accessing the root
   B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
 
   // init
-  root->Init(newId);
-
-  // Insert this
-  Transaction *newTrans = new Transaction(0);
-  Insert(key, value, newTrans);
-
+  int max_size = (512 - sizeof(B_PLUS_TREE_LEAF_PAGE_TYPE)) / sizeof(MappingType) - 1;
+  root->Init(newId, INVALID_PAGE_ID, max_size);
+  buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
   UpdateRootPageId(true);
 
   // finish accessing the root
-  buffer_pool_manager_->UnpinPage(newId, true);
 }
 
 /*
@@ -115,15 +117,23 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
+  // LOG_INFO("entered IIL");`
   Page *page = FindLeafPage(key, false);
+  // LOG_INFO("after FLP");`
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  // LOG_INFO("after bptp");`
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
+  // LOG_INFO("after lp reint");
   
   ValueType v = value;
+  LOG_INFO("after v=value");
   if(leaf->Lookup(key, &v, comparator_)){
+    // LOG_INFO("enter lookup FALSE");`
     return false;
   }else{
+    // LOG_INFO("enter lookup TRUE");`
     leaf->Insert(key, value, comparator_);
+    // LOG_INFO("exiting lookup TRUE");
     return true;
   }
 }
@@ -291,8 +301,9 @@ page_id_t page_id= root_page_id_;
 
 Page *page = buffer_pool_manager_->FetchPage(page_id);
 BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+
 while(!bppage->IsLeafPage()){
-    InternalPage *internal = reinterpret_cast<InternalPage *>(bppage);
+    InternalPage *internal = static_cast<InternalPage *>(bppage);
     page_id_t nextDest;
     if(leftMost){
       nextDest = internal->ValueAt(0);
