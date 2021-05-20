@@ -74,10 +74,11 @@ INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) {
   assert(transaction != nullptr);
   if (IsEmpty()) {
+    //if it's empty
     StartNewTree(key, value);
-
     return InsertIntoLeaf(key, value, transaction);
   } else {
+    //not empty, insert into leaf.
     return InsertIntoLeaf(key, value, transaction);
   }
 }
@@ -98,10 +99,10 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
     throw std::bad_alloc();
   }
   // accessing the root
-  B_PLUS_TREE_LEAF_PAGE_TYPE *root = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(newRoot->GetData());
+  LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  int max_size = (512 - sizeof(B_PLUS_TREE_LEAF_PAGE_TYPE)) / sizeof(MappingType) - 1;
+  int max_size = (512 - sizeof(LeafPage)) / sizeof(MappingType) - 1;
   root->Init(newId, INVALID_PAGE_ID, max_size);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
@@ -139,7 +140,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       leafSize=leaf->Insert(key, value, comparator_);
     }else{
       leaf->Insert(key, value, comparator_);
-      B_PLUS_TREE_LEAF_PAGE_TYPE *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+      LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
       InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
     }
     return true;
@@ -162,7 +163,7 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
   }
 
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(newPage->GetData());
-  int max_size = (512 - sizeof(B_PLUS_TREE_LEAF_PAGE_TYPE)) / sizeof(MappingType) - 1;
+  int max_size = (512 - sizeof(LeafPage)) / sizeof(MappingType) - 1;
   if(node->IsLeafPage()){
     //treat as leaf page
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(bppage);
@@ -189,7 +190,28 @@ INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, 
                                         const KeyType &key, 
                                         BPlusTreePage *new_node,                         
-                                        Transaction *transaction) {}
+                                        Transaction *transaction) {
+  if(old_node->IsRootPage()){
+    page_id_t newId;
+    Page *newRootPage = buffer_pool_manager_->NewPage(&newId);
+    InternalPage *newRootNode = reinterpret_cast<InternalPage *>(newRootPage->GetData());
+
+    int max_size = (512 - sizeof(InternalPage)) / sizeof(MappingType) - 1;
+    newRootNode->Init(newId, INVALID_PAGE_ID, max_size); 
+    
+    InternalPage *oldPage = reinterpret_cast<InternalPage *>(old_node);
+    InternalPage *newPage = reinterpret_cast<InternalPage *>(new_node);
+
+    newRootNode->PopulateNewRoot(oldPage->GetPageId(), key, newPage->GetPageId());
+    
+    old_node->SetParentPageId(newId);
+    new_node->SetParentPageId(newId);
+
+    root_page_id_ = newId;
+    UpdateRootPageId(false);
+  }else{
+  }
+}
 
 /*****************************************************************************
  * REMOVE
