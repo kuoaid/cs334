@@ -52,12 +52,10 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
   
-  ValueType *container;
-  *container = 0;
+  ValueType *container = new ValueType;
   bool res = leaf->Lookup(key, container, comparator_);
-  if(res){
-    result->push_back(*container);
-    free(container);
+  if (res) {
+    result->__emplace_back(*container);
   }
   return res;
 }
