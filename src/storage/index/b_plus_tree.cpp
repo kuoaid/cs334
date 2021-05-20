@@ -307,21 +307,29 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::begin() {
  */
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
-  auto start_leaf = FindLeafPage(key, true);
-  BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
-  LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);
-  int start_index = 0;
-  if (start_leaf_lf != nullptr) {
-    //
-    int index = start_leaf_lf->KeyIndex(key, comparator_);
-    if (start_leaf_lf->GetSize() > 0 && index < start_leaf_lf->GetSize() && comparator_(key, start_leaf_lf->GetItem(index).first) == 0) {
-      //
-      start_index = index;
-    } else {
-      start_index = start_leaf_lf->GetSize();
-    }
-  }
-  return INDEXITERATOR_TYPE(start_leaf_lf, start_index, buffer_pool_manager_);
+  // auto start_leaf = FindLeafPage(key, false);
+  // BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
+  // LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);
+  // int start_index = 0;
+  // if (start_leaf_lf != nullptr) {
+  //   //
+  //   int index = start_leaf_lf->KeyIndex(key, comparator_);
+  //   if (start_leaf_lf->GetSize() > 0 && index < start_leaf_lf->GetSize() && comparator_(key, start_leaf_lf->GetItem(index).first) == 0) {
+  //     //
+  //     start_index = index;
+  //   } else {
+  //     start_index = start_leaf_lf->GetSize();
+  //   }
+  // }
+  // return INDEXITERATOR_TYPE(start_leaf_lf, start_index, buffer_pool_manager_);
+
+  auto leaf_page = FindLeafPage(key, false);
+  auto leaf = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(leaf_page->GetData());
+  auto leaf_lf = reinterpret_cast<LeafPage *>(leaf);
+  int index = leaf_lf->KeyIndex(key, comparator_);
+  //auto page_id = leaf->GetPageId();
+  //UnlockPage(leaf_page, nullptr, Operation::SEARCH);
+  return INDEXITERATOR_TYPE(leaf_lf, index, buffer_pool_manager_);
 }
 
 /*

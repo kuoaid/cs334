@@ -57,7 +57,11 @@ TEST(BPlusTreeTests, InsertTest1) {
   int64_t current_key = start_key;
   index_key.SetFromInteger(start_key);
   int count = 1;
+  LOG_INFO("Before LOOP");
+  auto iterator = tree.Begin(index_key);
+  LOG_INFO("iterator != tree.end: %i", iterator != tree.end());
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
+    LOG_INFO("IN LOOP");
     LOG_INFO("count: %i", count);
     LOG_INFO("iterator.getIndex: %i", iterator.getIndex());
     auto location = (*iterator).second;
@@ -66,7 +70,8 @@ TEST(BPlusTreeTests, InsertTest1) {
     current_key = current_key + 1;
     count++;
   }
-
+  LOG_INFO("HERE");
+  LOG_INFO("current_key: %lli", current_key);
   EXPECT_EQ(current_key, keys.size() + 1);
 
   bpm->UnpinPage(HEADER_PAGE_ID, true);
