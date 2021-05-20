@@ -54,9 +54,8 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   
   ValueType *container = new ValueType();
   bool res = leaf->Lookup(key, container, comparator_);
-  if(res){
+  if (res) {
     result->push_back(*container);
-    free(container);
   }
   return res;
 }
