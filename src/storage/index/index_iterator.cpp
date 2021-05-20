@@ -46,7 +46,7 @@ const MappingType &INDEXITERATOR_TYPE::operator*() {
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {
-  if (++index_ >= leaf_->GetSize()) {
+  /*if (++index_ >= leaf_->GetSize()) {
 
     page_id_t next_page_id = leaf_->GetNextPageId();
     if (next_page_id == INVALID_PAGE_ID) {
@@ -69,7 +69,8 @@ INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {
       leaf_ = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(next_page->GetData());
       index_ = 0;
     }
-  }
+  }*/
+  index_++;
   return *this;
 }
 
