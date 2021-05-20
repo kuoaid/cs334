@@ -51,9 +51,15 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   Page *page = FindLeafPage(key, false);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
-
-  result->resize(1);
-  return leaf->Lookup(key, &(result->at(0)), comparator_);
+  
+  ValueType *container;
+  *container = 0;
+  bool res = leaf->Lookup(key, container, comparator_);
+  if(res){
+    result->push_back(*container);
+    free(container);
+  }
+  return res;
 }
 
 /*****************************************************************************
@@ -71,7 +77,7 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   assert(transaction != nullptr);
   if (IsEmpty()) {
     StartNewTree(key, value);
-    LOG_INFO("after SNT completion");
+
     return InsertIntoLeaf(key, value, transaction);
   } else {
     return InsertIntoLeaf(key, value, transaction);
