@@ -310,9 +310,9 @@ page_id_t page_id= root_page_id_;
 Page *page = buffer_pool_manager_->FetchPage(page_id);
 BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
 
+page_id_t nextDest;
 while(!bppage->IsLeafPage()){
     InternalPage *internal = static_cast<InternalPage *>(bppage);
-    page_id_t nextDest;
     if(leftMost){
       nextDest = internal->ValueAt(0);
     }else{
@@ -322,8 +322,9 @@ while(!bppage->IsLeafPage()){
     Page *page = buffer_pool_manager_->FetchPage(nextDest);
     bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   }
+buffer_pool_manager_->UnpinPage(page_id, true); 
 return page;
-buffer_pool_manager_->UnpinPage(page_id, true);  // or false if the page was not modified
+ // or false if the page was not modified
 }
 
 /*
