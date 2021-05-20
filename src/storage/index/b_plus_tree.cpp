@@ -123,6 +123,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
   //getting the leaf page.
+
   Page *page = FindLeafPage(key, false);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
@@ -191,6 +192,10 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node,
                                         const KeyType &key, 
                                         BPlusTreePage *new_node,                         
                                         Transaction *transaction) {
+
+  InternalPage *oldPage = reinterpret_cast<InternalPage *>(old_node);
+  InternalPage *newPage = reinterpret_cast<InternalPage *>(new_node);
+
   if(old_node->IsRootPage()){
     page_id_t newId;
     Page *newRootPage = buffer_pool_manager_->NewPage(&newId);
@@ -199,8 +204,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node,
     int max_size = (512 - sizeof(InternalPage)) / sizeof(MappingType) - 1;
     newRootNode->Init(newId, INVALID_PAGE_ID, max_size); 
     
-    InternalPage *oldPage = reinterpret_cast<InternalPage *>(old_node);
-    InternalPage *newPage = reinterpret_cast<InternalPage *>(new_node);
+
 
     newRootNode->PopulateNewRoot(oldPage->GetPageId(), key, newPage->GetPageId());
     
@@ -210,6 +214,18 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node,
     root_page_id_ = newId;
     UpdateRootPageId(false);
   }else{
+    page_id_t parentId = old_node->GetParentPageId();
+    InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
+    new_node->SetParentPageId(parentId);
+    if(parentNode->GetSize() >= parentNode->GetMaxSize()){
+
+      parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+
+      InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
+
+      InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+
+    }
   }
 }
 
