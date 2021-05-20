@@ -37,27 +37,35 @@ TEST(BPlusTreeTests, InsertTest1) {
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
     tree.Insert(index_key, rid, transaction);
+
   }
 
   std::vector<RID> rids;
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
+    LOG_INFO("key: %lli", key);
     tree.GetValue(index_key, &rids);
     EXPECT_EQ(rids.size(), 1);
 
     int64_t value = key & 0xFFFFFFFF;
+    LOG_INFO("rids[0].GetSlotNum(): %i", rids[0].GetSlotNum());
+    LOG_INFO("value: %lli", value);
     EXPECT_EQ(rids[0].GetSlotNum(), value);
   }
 
   int64_t start_key = 1;
   int64_t current_key = start_key;
   index_key.SetFromInteger(start_key);
+  int count = 1;
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
+    LOG_INFO("count: %i", count);
+    LOG_INFO("iterator.getIndex: %i", iterator.getIndex());
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
     current_key = current_key + 1;
+    count++;
   }
 
   EXPECT_EQ(current_key, keys.size() + 1);
@@ -113,6 +121,7 @@ TEST(BPlusTreeTests, InsertTest2) {
   int64_t current_key = start_key;
   index_key.SetFromInteger(start_key);
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
+    //LOG_INFO("2");
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
@@ -125,6 +134,7 @@ TEST(BPlusTreeTests, InsertTest2) {
   current_key = start_key;
   index_key.SetFromInteger(start_key);
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
+    //LOG_INFO("3");
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
