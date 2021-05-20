@@ -43,13 +43,10 @@ TEST(BPlusTreeTests, InsertTest1) {
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
-    LOG_INFO("key: %lli", key);
     tree.GetValue(index_key, &rids);
     EXPECT_EQ(rids.size(), 1);
 
     int64_t value = key & 0xFFFFFFFF;
-    LOG_INFO("rids[0].GetSlotNum(): %i", rids[0].GetSlotNum());
-    LOG_INFO("value: %lli", value);
     EXPECT_EQ(rids[0].GetSlotNum(), value);
   }
 
