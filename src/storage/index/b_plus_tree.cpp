@@ -121,7 +121,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
-
+  //getting the leaf page.
   Page *page = FindLeafPage(key, false);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
@@ -130,18 +130,18 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   int leafSize = leaf->GetSize();
   int leafMaxSize = leaf->GetMaxSize();
 
-  LOG_INFO("after v=value");
-  if(leaf->Lookup(key, &v, comparator_)){//exists
+  if(leaf->Lookup(key, &v, comparator_)){//value exists?
+  //maybe unpin here?
+    //buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     return false;
   }else{
     if(leafSize<leafMaxSize){
       leafSize=leaf->Insert(key, value, comparator_);
     }else{
       leaf->Insert(key, value, comparator_);
-      //B_PLUS_TREE_LEAF_PAGE_TYPE *new_leaf = Split(leaf);
-      //InsertIntoParent(leaf, new_leaf->KeyAt(0), new_leaf, transaction);
+      B_PLUS_TREE_LEAF_PAGE_TYPE *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+      InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
     }
-    leaf->Insert(key, value, comparator_);
     return true;
   }
 }
@@ -154,7 +154,27 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
  * of key & value pairs from input page to newly created page
  */
 INDEX_TEMPLATE_ARGUMENTS
-BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) { return nullptr; }
+BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) { 
+  page_id_t newId;
+  Page *newPage = buffer_pool_manager_->NewPage(&newId);
+  if(newPage==nullptr){
+    throw std::bad_alloc();
+  }
+
+  BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(newPage->GetData());
+  int max_size = (512 - sizeof(B_PLUS_TREE_LEAF_PAGE_TYPE)) / sizeof(MappingType) - 1;
+  if(node->IsLeafPage()){
+    //treat as leaf page
+    LeafPage *newLeaf = reinterpret_cast<LeafPage *>(bppage);
+    newLeaf->Init(newId,node->GetParentPageId(),max_size);
+    return newLeaf;
+  }else{
+    //treat as internal page
+    InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
+    newInternal->Init(newId,node->GetParentPageId(),max_size);
+    return newInternal;
+  }
+}
 
 /*
  * Insert key & value pair into internal page after split
@@ -166,8 +186,10 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) { return nullptr; }
  * insert in parent if necessary.
  */
 INDEX_TEMPLATE_ARGUMENTS
-void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &key, BPlusTreePage *new_node,
-                                      Transaction *transaction) {}
+void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, 
+                                        const KeyType &key, 
+                                        BPlusTreePage *new_node,                         
+                                        Transaction *transaction) {}
 
 /*****************************************************************************
  * REMOVE
