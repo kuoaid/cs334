@@ -52,8 +52,7 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
   
-  ValueType *container;
-  *container = 0;
+  ValueType *container = new ValueType();
   bool res = leaf->Lookup(key, container, comparator_);
   if(res){
     result->push_back(*container);
@@ -123,23 +122,27 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
-  // LOG_INFO("entered IIL");`
+
   Page *page = FindLeafPage(key, false);
-  // LOG_INFO("after FLP");`
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
-  // LOG_INFO("after bptp");`
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
-  // LOG_INFO("after lp reint");
-  
+
   ValueType v = value;
+  int leafSize = leaf->GetSize();
+  int leafMaxSize = leaf->GetMaxSize();
+
   LOG_INFO("after v=value");
-  if(leaf->Lookup(key, &v, comparator_)){
-    // LOG_INFO("enter lookup FALSE");`
+  if(leaf->Lookup(key, &v, comparator_)){//exists
     return false;
   }else{
-    // LOG_INFO("enter lookup TRUE");`
+    if(leafSize<leafMaxSize){
+      leafSize=leaf->Insert(key, value, comparator_);
+    }else{
+      leaf->Insert(key, value, comparator_);
+      //B_PLUS_TREE_LEAF_PAGE_TYPE *new_leaf = Split(leaf);
+      //InsertIntoParent(leaf, new_leaf->KeyAt(0), new_leaf, transaction);
+    }
     leaf->Insert(key, value, comparator_);
-    // LOG_INFO("exiting lookup TRUE");
     return true;
   }
 }
