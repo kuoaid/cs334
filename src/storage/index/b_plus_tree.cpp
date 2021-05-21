@@ -210,13 +210,12 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node,
   }else{
     page_id_t parentId = old_node->GetParentPageId();
     InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
-    new_node->SetParentPageId(parentId);
+    
     if(parentNode->GetSize() < parentNode->GetMaxSize()){
 
       parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-
+      new_node->SetParentPageId(parentId);
       InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
-
       InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
 
     }
