@@ -55,14 +55,14 @@ TEST(BPlusTreeTests, InsertTest1) {
   index_key.SetFromInteger(start_key);
   int count = 1;
   auto iterator = tree.Begin(index_key);
-  //LOG_INFO("iterator != tree.end(): %i", iterator != tree.end());
+  // LOG_INFO("iterator != tree.end(): %i", iterator != tree.end());
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
     current_key = current_key + 1;
     count++;
-    //printf("iterator != tree.end(): %i\n", iterator != tree.end());
+    // printf("iterator != tree.end(): %i\n", iterator != tree.end());
   }
   EXPECT_EQ(current_key, keys.size() + 1);
   bpm->UnpinPage(HEADER_PAGE_ID, true);
@@ -119,7 +119,7 @@ TEST(BPlusTreeTests, InsertTest2) {
 <<<<<<< HEAD
     // LOG_INFO("2");
 =======
-    //LOG_INFO("iterator.getIndex(): %i", iterator.getIndex());
+    // LOG_INFO("iterator.getIndex(): %i", iterator.getIndex());
 >>>>>>> c8fc63adc4073599b8dd6762d86bcc9f7a225ea6
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);

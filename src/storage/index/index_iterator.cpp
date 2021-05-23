@@ -1,9 +1,9 @@
 /**
  * index_iterator.cpp
  */
-#include <cassert>
-#include <stdio.h>
 #include "storage/index/index_iterator.h"
+#include <stdio.h>
+#include <cassert>
 
 namespace bustub {
 
@@ -18,18 +18,15 @@ INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, B
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE::~IndexIterator() {
   if (leaf_ != nullptr) {
-    //Page *page = bpm_->FetchPage(leaf_->GetPageId());
-    //page->RUnlatch();
-    //bpm_->UnpinPage(leaf_->GetPageId(), false);
-    //bpm_->UnpinPage(leaf_->GetPageId(), false);
-    //delete leaf_;
+    // Page *page = bpm_->FetchPage(leaf_->GetPageId());
+    // page->RUnlatch();
+    // bpm_->UnpinPage(leaf_->GetPageId(), false);
+    // bpm_->UnpinPage(leaf_->GetPageId(), false);
+    // delete leaf_;
   }
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-<<<<<<< HEAD
-bool INDEXITERATOR_TYPE::isEnd() { return leaf_->GetNextPageId() == INVALID_PAGE_ID; }
-=======
 bool INDEXITERATOR_TYPE::isEnd() {
   // auto next_id = leaf_->GetNextPageId();
   // printf("index_: %i \n", index_);
@@ -39,14 +36,14 @@ bool INDEXITERATOR_TYPE::isEnd() {
   }
   return (index_ >= leaf_->GetSize() && leaf_->GetNextPageId() == INVALID_PAGE_ID);
 }
->>>>>>> c8fc63adc4073599b8dd6762d86bcc9f7a225ea6
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
   // if (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) {
   //   return true;
   // }
-  return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) || (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
+  return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) ||
+         (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
 }
 
 INDEX_TEMPLATE_ARGUMENTS
@@ -63,16 +60,12 @@ bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-<<<<<<< HEAD
-const MappingType &INDEXITERATOR_TYPE::operator*() { return leaf_->GetItem(index_); }
-=======
 const MappingType &INDEXITERATOR_TYPE::operator*() {
-  if(isEnd()){
+  if (isEnd()) {
     throw std::out_of_range("IndexIterator: out of range");
   }
   return leaf_->GetItem(index_);
 }
->>>>>>> c8fc63adc4073599b8dd6762d86bcc9f7a225ea6
 
 INDEX_TEMPLATE_ARGUMENTS
 int INDEXITERATOR_TYPE::getIndex() { return index_; }
@@ -84,17 +77,12 @@ INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {
     if (next_page_id == INVALID_PAGE_ID) {
       leaf_ = nullptr;
     } else {
-      //更新leaf指向next_page_id对应的叶子节点
       Page *next_page = bpm_->FetchPage(next_page_id);
 
       leaf_ = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(next_page->GetData());
       index_ = 0;
     }
   }
-  // if (isEnd()) {
-  //   return *this;
-  // }
-  // index_++;
   return *this;
 }
 
