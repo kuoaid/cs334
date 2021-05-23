@@ -173,8 +173,6 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveHalfTo(BPlusTreeInternalPage *recipient
                                                 BufferPoolManager *buffer_pool_manager) {
   // assert(recipient != nullptr);
   // assert(GetSize() == GetMaxSize() + 1);
-
-  // 拷贝
   int lastIndex = GetSize() - 1;
   int start = lastIndex / 2 + 1;
   int i = 0;

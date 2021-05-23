@@ -156,6 +156,7 @@ INDEX_TEMPLATE_ARGUMENTS
 BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
   page_id_t newId;
   Page *newPage = buffer_pool_manager_->NewPage(&newId);
+
   if (newPage == nullptr) {
     throw std::bad_alloc();
   }
@@ -168,8 +169,9 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
-    return newLeaf;// problem: returning an empty page. Let's fix that.
+    return newLeaf;
   }
+
   InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
   newInternal->Init(newId, node->GetParentPageId(), internal_max_size_);
 
@@ -212,7 +214,8 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   }
   page_id_t parentId = old_node->GetParentPageId();
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
-
+  new_node->SetParentPageId(parentId);
+  
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
     new_node->SetParentPageId(parentId);
