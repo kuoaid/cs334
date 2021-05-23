@@ -165,11 +165,19 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     // treat as leaf page
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(bppage);
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
-    return newLeaf;
+    
+    LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
+    nodeAsLeaf->MoveHalfTo(newLeaf);
+    return newLeaf;// problem: returning an empty page. Let's fix that.
   }
   InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
   newInternal->Init(newId, node->GetParentPageId(), internal_max_size_);
+
+  InternalPage *nodeAsInternal = reinterpret_cast<InternalPage *>(node);
+  nodeAsInternal->MoveHalfTo(newInternal, buffer_pool_manager_);
+
   return newInternal;
+  
 }
 
 /*
