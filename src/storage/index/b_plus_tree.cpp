@@ -187,15 +187,19 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   if (old_node->IsRootPage()) {
     page_id_t newId;
     Page *newRootPage = buffer_pool_manager_->NewPage(&newId);
-
     InternalPage *newRootNode = reinterpret_cast<InternalPage *>(newRootPage->GetData());
     newRootNode->Init(newId, INVALID_PAGE_ID, internal_max_size_);
     newRootNode->PopulateNewRoot(old_node->GetPageId(), key, new_node->GetPageId());
+
     old_node->SetParentPageId(newId);
     new_node->SetParentPageId(newId);
+
     root_page_id_ = newId;
     UpdateRootPageId(false);
-    buffer_pool_manager_->UnpinPage(root_page_id_, true);
+
+    buffer_pool_manager_->UnpinPage(newId, true);
+        buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+        buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return;
   }
   page_id_t parentId = old_node->GetParentPageId();
@@ -204,11 +208,17 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
     new_node->SetParentPageId(parentId);
+    buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return;
   }
+
   parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+  buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+  buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
   InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+  buffer_pool_manager_->UnpinPage(parentId, true);
 }
 
 /*****************************************************************************
