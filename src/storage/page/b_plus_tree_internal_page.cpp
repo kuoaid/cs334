@@ -88,13 +88,11 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const {
 INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
   assert(GetSize() >= 2);
-  // 先找到第一个array[index].first大于等于key的index（从index 1开始）
   int left = 1;
   int right = GetSize() - 1;
   int mid;
   int compareResult;
   int targetIndex;
-  // Binary search
   while (left <= right) {
     mid = left + (right - left) / 2;
     compareResult = comparator(array[mid].first, key);
