@@ -195,37 +195,38 @@ INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &key, BPlusTreePage *new_node,
                                       Transaction *transaction) {
   if (old_node->IsRootPage()) {
-    page_id_t newId;
-    Page *newRootPage = buffer_pool_manager_->NewPage(&newId);
+
+    page_id_t newRootId;
+    Page *newRootPage = buffer_pool_manager_->NewPage(&newRootId);
     InternalPage *newRootNode = reinterpret_cast<InternalPage *>(newRootPage->GetData());
-    newRootNode->Init(newId, INVALID_PAGE_ID, internal_max_size_);
+
+    newRootNode->Init(newRootId, INVALID_PAGE_ID, internal_max_size_);
     newRootNode->PopulateNewRoot(old_node->GetPageId(), key, new_node->GetPageId());
-
-    old_node->SetParentPageId(newId);
-    new_node->SetParentPageId(newId);
-
-    root_page_id_ = newId;
+    
+    old_node->SetParentPageId(newRootId);// there's a new root in town.
+    new_node->SetParentPageId(newRootId);
+    root_page_id_ = newRootId;
     UpdateRootPageId(false);
 
-    buffer_pool_manager_->UnpinPage(newId, true);
-        buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
-        buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-    return;
+    buffer_pool_manager_->UnpinPage(newRootId, true);
+    buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }
+  
   page_id_t parentId = old_node->GetParentPageId();
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
   new_node->SetParentPageId(parentId);
 
   parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert now.
 
-  //test if insertion exceeds MaxSize.
-  if (parentNode->GetSize() < parentNode->GetMaxSize()) {
+  // test if insertion exceeds MaxSize.
+  if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return;
   }
 
-  //Here, the new size EXCEEDES MaxSize.
+  // Here, the new size EXCEEDES MaxSize.
   InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
   InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
 
