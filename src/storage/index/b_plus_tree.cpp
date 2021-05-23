@@ -212,15 +212,16 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }
-  
+
+  //begin insertion
   page_id_t parentId = old_node->GetParentPageId();
-  InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
-  new_node->SetParentPageId(parentId);
+  InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
 
-  parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert now.
-
+  parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+  
   // test if insertion exceeds MaxSize.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
+    new_node->SetParentPageId(parentId);
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return;
