@@ -215,21 +215,24 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   page_id_t parentId = old_node->GetParentPageId();
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
   new_node->SetParentPageId(parentId);
-  
+
+  parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert now.
+
+  //test if insertion exceeds MaxSize.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {
-    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-    new_node->SetParentPageId(parentId);
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return;
   }
 
-  parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-  buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
-  buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
+  //Here, the new size EXCEEDES MaxSize.
   InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
   InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+
+  buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+  buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   buffer_pool_manager_->UnpinPage(parentId, true);
+
 }
 
 /*****************************************************************************
