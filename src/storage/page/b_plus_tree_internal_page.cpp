@@ -101,24 +101,22 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyCo
     if (compareResult == 0) {
       left = mid;
       break;
-    } else if (compareResult < 0) {
+    }
+    if (compareResult < 0) {
       left = mid + 1;
     } else {
       right = mid - 1;
     }
   }
   targetIndex = left;
-
-  // key比array中所有key都要大
   if (targetIndex >= GetSize()) {
     return array[GetSize() - 1].second;
   }
 
   if (comparator(array[targetIndex].first, key) == 0) {
     return array[targetIndex].second;
-  } else {
-    return array[targetIndex - 1].second;
   }
+  return array[targetIndex - 1].second;
 }
 
 /*****************************************************************************

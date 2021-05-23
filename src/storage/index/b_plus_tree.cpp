@@ -77,10 +77,8 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     // if it's empty
     StartNewTree(key, value);
     return InsertIntoLeaf(key, value, transaction);
-  } else {
-    // not empty, insert into leaf.
-    return InsertIntoLeaf(key, value, transaction);
   }
+  return InsertIntoLeaf(key, value, transaction);
 }
 
 /*
@@ -136,16 +134,15 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     // maybe unpin here?
     // buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     return false;
-  } else {
-    if (leafSize < leafMaxSize) {
-      leafSize = leaf->Insert(key, value, comparator_);
-    } else {
-      leaf->Insert(key, value, comparator_);
-      LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
-      InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
-    }
-    return true;
   }
+  if (leafSize < leafMaxSize) {
+    leafSize = leaf->Insert(key, value, comparator_);
+  } else {
+    leaf->Insert(key, value, comparator_);
+    LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+    InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
+  }
+  return true;
 }
 
 /*
@@ -170,12 +167,10 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(bppage);
     newLeaf->Init(newId, node->GetParentPageId(), max_size);
     return newLeaf;
-  } else {
-    // treat as internal page
-    InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
-    newInternal->Init(newId, node->GetParentPageId(), max_size);
-    return newInternal;
   }
+  InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
+  newInternal->Init(newId, node->GetParentPageId(), max_size);
+  return newInternal;
 }
 
 /*
@@ -205,16 +200,13 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     UpdateRootPageId(false);
     buffer_pool_manager_->UnpinPage(root_page_id_, true);
     return;
-  } else {
-    page_id_t parentId = old_node->GetParentPageId();
-    InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
+  }
+  page_id_t parentId = old_node->GetParentPageId();
+  InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());
 
-    if (parentNode->GetSize() < parentNode->GetMaxSize()) {
-      parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-      new_node->SetParentPageId(parentId);
-      // InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
-      // InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
-    }
+  if (parentNode->GetSize() < parentNode->GetMaxSize()) {
+    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+    new_node->SetParentPageId(parentId);
   }
 }
 

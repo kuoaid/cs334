@@ -2,8 +2,8 @@
  * index_iterator.cpp
  */
 #include "storage/index/index_iterator.h"
-#include <stdio.h>
 #include <cassert>
+#include <cstdio>
 
 namespace bustub {
 

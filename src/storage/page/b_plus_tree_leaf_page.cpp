@@ -62,7 +62,8 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator
     compareResult = comparator(array[mid].first, key);
     if (compareResult == 0) {
       return mid;
-    } else if (compareResult < 0) {
+    }
+    if (compareResult < 0) {
       left = mid + 1;
     } else {
       right = mid - 1;
