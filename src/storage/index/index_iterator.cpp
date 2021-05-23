@@ -12,7 +12,8 @@ namespace bustub {
  * set your own input parameters
  */
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, BufferPoolManager *bpm):leaf_(leaf), index_(index), bpm_(bpm) {}
+INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, BufferPoolManager *bpm)
+    : leaf_(leaf), index_(index), bpm_(bpm) {}
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE::~IndexIterator() {
@@ -25,9 +26,7 @@ INDEXITERATOR_TYPE::~IndexIterator() {
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-bool INDEXITERATOR_TYPE::isEnd() {
-  return leaf_->GetNextPageId() == INVALID_PAGE_ID;
-}
+bool INDEXITERATOR_TYPE::isEnd() { return leaf_->GetNextPageId() == INVALID_PAGE_ID; }
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
@@ -40,19 +39,14 @@ bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-const MappingType &INDEXITERATOR_TYPE::operator*() {
-  return leaf_->GetItem(index_);
-}
+const MappingType &INDEXITERATOR_TYPE::operator*() { return leaf_->GetItem(index_); }
 
 INDEX_TEMPLATE_ARGUMENTS
-int INDEXITERATOR_TYPE::getIndex() {
-  return index_;
-}
+int INDEXITERATOR_TYPE::getIndex() { return index_; }
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {
   if (++index_ >= leaf_->GetSize()) {
-
     page_id_t next_page_id = leaf_->GetNextPageId();
     if (next_page_id == INVALID_PAGE_ID) {
       Page *page = bpm_->FetchPage(leaf_->GetPageId());
