@@ -171,7 +171,6 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     nodeAsLeaf->MoveHalfTo(newLeaf);
     return newLeaf;
   }
-
   InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
   newInternal->Init(newId, node->GetParentPageId(), internal_max_size_);
 
@@ -216,25 +215,22 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   //begin insertion
   page_id_t parentId = old_node->GetParentPageId();
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
-
-  parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
-  
   // test if insertion exceeds MaxSize.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
-    new_node->SetParentPageId(parentId);
+    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+    new_node->SetParentPageId(parentNode->GetPageId());
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-    return;
+  }else{
+    // new size EXCEEDES MaxSize here.
+    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+    InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
+    InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+    buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
+    
   }
-
-  // Here, the new size EXCEEDES MaxSize.
-  InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
-  InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
-
-  buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
-  buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-  buffer_pool_manager_->UnpinPage(parentId, true);
-
+buffer_pool_manager_->UnpinPage(parentId, true);
 }
 
 /*****************************************************************************
