@@ -141,13 +141,16 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
   int leafSize = leaf->GetSize();
   int leafMaxSize = leaf->GetMaxSize();
+  
+  // check if value exists
   if(leaf->Lookup(key, &v, comparator_)){//value exists?
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     UnLatchPageSet(transaction, 0);
     return false;
   }
-  leafSize=leaf->Insert(key, value, comparator_);
-  if(leafSize>=leafMaxSize){
+
+  // Now value DNE. Insert.
+  if(leaf->Insert(key, value, comparator_)>=leafMaxSize){
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
   }
@@ -164,6 +167,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
  */
 INDEX_TEMPLATE_ARGUMENTS
 BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
+  // allocate a new page
   page_id_t newId;
   Page *newPage = buffer_pool_manager_->NewPage(&newId);
 
@@ -171,24 +175,29 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     throw std::bad_alloc();
   }
 
-  BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(newPage->GetData());
+
   if (node->IsLeafPage()) {
     // treat as leaf page
-    LeafPage *newLeaf = reinterpret_cast<LeafPage *>(bppage);
+
+    // initialize its metadata
+    LeafPage *newLeaf = reinterpret_cast<LeafPage *>(newPage->GetData());
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
-    
+    // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
+
+    // Return the new node.
     return newLeaf;
   }
-  InternalPage *newInternal = reinterpret_cast<InternalPage *>(bppage);
+  // initialize its metadata
+  InternalPage *newInternal = reinterpret_cast<InternalPage *>(newPage->GetData());
   newInternal->Init(newId, node->GetParentPageId(), internal_max_size_);
-
+  //move half of the entries in node to the new node.
   InternalPage *nodeAsInternal = reinterpret_cast<InternalPage *>(node);
   nodeAsInternal->MoveHalfTo(newInternal, buffer_pool_manager_);
 
+  // Return the new node.
   return newInternal;
-  
 }
 
 /*
