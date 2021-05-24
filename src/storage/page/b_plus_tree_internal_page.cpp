@@ -87,7 +87,7 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const {
  */
 INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
-  assert(GetSize() >= 2);
+  //assert(GetSize() >= 2);
   int left = 1;
   int right = GetSize() - 1;
   int mid;

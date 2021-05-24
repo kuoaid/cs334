@@ -54,7 +54,9 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
 
   ValueType *container = new ValueType();
   bool res = leaf->Lookup(key, container, comparator_);
+  //printf("res:%i\n", res);
   if (res) {
+    //printf("in\n");
     result->push_back(*container);
   }
   if (transaction != nullptr) {
@@ -112,7 +114,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  root->Init(newId, INVALID_PAGE_ID, leaf_max_size_);
+  root->Init(newId, INVALID_PAGE_ID, internal_max_size_*2);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
@@ -148,8 +150,8 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
   // Now value DNE. Insert.
   if(leaf->GetSize() < leaf->GetMaxSize()) {
-    printf("%i\n",leaf->GetSize());
-    printf("%i\n",leaf->GetMaxSize());
+    //printf("%i\n",leaf->GetSize());
+    //printf("%i\n",leaf->GetMaxSize());
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
@@ -458,54 +460,96 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   }
 
   page_id_t nextDest;
-  while(!bppage->IsLeafPage()){
+  //printf("can?\n");
+  //printf("bppage->IsRootPage(): %i\n", bppage->IsRootPage());
+  while(!bppage->IsLeafPage() || bppage->IsRootPage()){
+    printf("can't\n");
     InternalPage *internal = static_cast<InternalPage *>(bppage);
+    printf("1\n");
     if (leftMost) {
+      printf("2\n");
       nextDest = internal->ValueAt(0);
+      printf("3\n");
     } else  {
+      printf("4\n");
       nextDest = internal->Lookup(key, comparator_);
+      printf("5\n");
     }
     Page *lastPage = page;
+    printf("6\n");
     BPlusTreePage *lastBp = bppage;
+    printf("7\n");
     Page *page = buffer_pool_manager_->FetchPage(nextDest);
+    printf("page: %p\n", (void *) page);
+    printf("lastPage: %p\n", (void *) lastPage);
+    printf("8\n");
     bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+    printf("9\n");
     if (indicator == 1) {
+      printf("10\n");
       page->RLatch();
     } else {
+      printf("11\n");
       page->WLatch();
     }
+    printf("12\n");
     if (transaction != nullptr) {
+      printf("13\n");
       if (indicator == 1) {
+        printf("14\n");
         UnLatchPageSet(transaction, indicator);
+        printf("15\n");
       } else {
+        printf("16\n");
         bool isSafe;
+        printf("17\n");
         if (indicator == 1) {
+          printf("18\n");
           isSafe = true;
         } else if (indicator == 0) {
+          printf("19\n");
           isSafe = bppage->GetSize() < bppage->GetMaxSize();
         } else if (indicator == -1) {
+          printf("20\n");
           isSafe = bppage->GetSize() > bppage->GetMinSize();
         } else {
+          printf("21\n");
           isSafe = false;
         }
+        printf("22\n");
         if (isSafe) {
+          printf("23\n");
           UnLatchPageSet(transaction, indicator);
+          printf("24\n");
         }
       }
     } else {
+      printf("25\n");
       lastPage->RUnlatch();
+      printf("26\n");
       if (lastBp->IsRootPage()) {
+        printf("27\n");
         root_id_mutex_.unlock();
+        printf("28\n");
       }
+      printf("29\n");
       buffer_pool_manager_->UnpinPage(lastPage->GetPageId(), false);
+      printf("30\n");
     }
     if (transaction != nullptr) {
+      printf("31\n");
       transaction->AddIntoPageSet(page);
     }
+    printf("32\n");
     page_id = nextDest;
   }
+  printf("33\n");
   root_id_mutex_.unlock();
+  printf("34\n");
   buffer_pool_manager_->UnpinPage(page_id, true); 
+  printf("35\n");
+  printf("bppage->isRootPage(): %i\n", bppage->IsRootPage());
+  printf("36\n");
   return page;
   // or false if the page was not modified
 }
