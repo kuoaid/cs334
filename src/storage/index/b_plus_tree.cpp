@@ -148,21 +148,25 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
   // Now value DNE. Insert.
   if(leaf->GetSize() < leaf->GetMaxSize()) {
-    printf("%i\n",leaf->GetSize());
-    printf("%i\n",leaf->GetMaxSize());
+    //printf("%i\n",leaf->GetSize());
+    //printf("%i\n",leaf->GetMaxSize());
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
+    //printf("entered SPLITTING REQUIRED.\n");
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
-
+    //printf("setting next page ID's\n");
     splitted->SetNextPageId(leaf->GetNextPageId());
     leaf->SetNextPageId(splitted->GetPageId());
     splitted->SetParentPageId(leaf->GetParentPageId());
 
+    //printf("inserting into parent\n");
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
 
     if(comparator_(key, splitted->KeyAt(0)) < 0) {
+      //printf("leaf insert\n");
       leaf->Insert(key, value, comparator_);
     } else {
+      //printf("splitted insert\n");
       splitted->Insert(key, value, comparator_);
     }
   }
@@ -250,6 +254,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   page_id_t parentId = old_node->GetParentPageId();
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
   new_node->SetParentPageId(parentId);
+  
   // test if parent node has at least 1 spot left.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
