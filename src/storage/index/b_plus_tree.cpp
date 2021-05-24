@@ -474,7 +474,7 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
     Page *lastPage = page;
     BPlusTreePage *lastBp = bppage;
 
-    Page *page = buffer_pool_manager_->FetchPage(nextDest);
+    page = buffer_pool_manager_->FetchPage(nextDest);
     bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
 
     if (!bppage->IsRootPage()) {

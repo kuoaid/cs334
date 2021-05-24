@@ -118,7 +118,6 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyCo
   if (targetIndex >= GetSize()) {
     return array[GetSize() - 1].second;
   }
-
   if (comparator(array[targetIndex].first, key) == 0) {
     return array[targetIndex].second;
   }
