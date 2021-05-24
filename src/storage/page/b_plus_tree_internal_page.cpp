@@ -88,37 +88,33 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const {
 INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
   assert(GetSize() >= 2);
-  // 先找到第一个array[index].first大于等于key的index（从index 1开始）
   int left = 1;
   int right = GetSize() - 1;
   int mid;
   int compareResult;
   int targetIndex;
-  // Binary search
   while (left <= right) {
     mid = left + (right - left) / 2;
     compareResult = comparator(array[mid].first, key);
     if (compareResult == 0) {
       left = mid;
       break;
-    } else if (compareResult < 0) {
+    }
+    if (compareResult < 0) {
       left = mid + 1;
     } else {
       right = mid - 1;
     }
   }
   targetIndex = left;
-
-  // key比array中所有key都要大
   if (targetIndex >= GetSize()) {
     return array[GetSize() - 1].second;
   }
 
   if (comparator(array[targetIndex].first, key) == 0) {
     return array[targetIndex].second;
-  } else {
-    return array[targetIndex - 1].second;
   }
+  return array[targetIndex - 1].second;
 }
 
 /*****************************************************************************
@@ -177,8 +173,6 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveHalfTo(BPlusTreeInternalPage *recipient
                                                 BufferPoolManager *buffer_pool_manager) {
   // assert(recipient != nullptr);
   // assert(GetSize() == GetMaxSize() + 1);
-
-  // 拷贝
   int lastIndex = GetSize() - 1;
   int start = lastIndex / 2 + 1;
   int i = 0;
