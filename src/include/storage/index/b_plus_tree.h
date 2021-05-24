@@ -13,6 +13,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "concurrency/transaction.h"
 #include "storage/index/index_iterator.h"
@@ -78,7 +79,7 @@ class BPlusTree {
   void RemoveFromFile(const std::string &file_name, Transaction *transaction = nullptr);
 
  private:
-  Page *FindLeafPage(const KeyType &key, bool leftMost = false);
+  Page *FindLeafPage(const KeyType &key, bool leftMost, int indicator, Transaction *transaction = nullptr);
 
   void StartNewTree(const KeyType &key, const ValueType &value);
 
@@ -102,6 +103,8 @@ class BPlusTree {
   /* Debug Routines for FREE!! */
   void ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out) const;
 
+  void UnLatchPageSet(Transaction *transaction, int indicator);
+
   std::string ToString(BPlusTreePage *page, BufferPoolManager *bpm) const;
 
   // member variable
@@ -111,6 +114,7 @@ class BPlusTree {
   KeyComparator comparator_;
   int leaf_max_size_;
   int internal_max_size_;
+  std::mutex root_id_mutex_;
 };
 
 }  // namespace bustub
