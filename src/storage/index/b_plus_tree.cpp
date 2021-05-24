@@ -145,17 +145,8 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     UnLatchPageSet(transaction, 0);
     return false;
-  }else{
-    if(leafSize<leafMaxSize){
-      leafSize=leaf->Insert(key, value, comparator_);
-    }else{
-      leaf->Insert(key, value, comparator_);
-      LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
-      InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
-    }
-    UnLatchPageSet(transaction, 0);
-    return true;
   }
+  
   if (leafSize < leafMaxSize) {
     leafSize = leaf->Insert(key, value, comparator_);
   } else {
@@ -240,13 +231,16 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   // test if parent node has at least 1 spot left.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
     // parent node has less than 1 spot left after insertion. Well, insert, and split, and do it all over again.
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
+
     InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
     InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
     
