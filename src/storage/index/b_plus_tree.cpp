@@ -138,6 +138,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   ValueType v = value;
   // check if value exists
   printf("Checking value exists\n");
+  printf("leaf's size: %i\n",leaf->GetSize());
   if(leaf->Lookup(key, &v, comparator_)){//value exists?
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     UnLatchPageSet(transaction, 0);
@@ -149,7 +150,9 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   if(leaf->GetSize() < leaf->GetMaxSize()) {
     printf("Size of leaf: %i\n",leaf->GetSize());
     printf("MaxSize of leaf: %i\n",leaf->GetMaxSize());
+
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
+
   }else{
     printf("entered SPLITTING REQUIRED.\n");
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
@@ -191,14 +194,12 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     throw std::bad_alloc();
   }
 
-
   if (node->IsLeafPage()) {
     // treat as leaf page
-
     // initialize its metadata
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(newPage->GetData());
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
-
+    
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
@@ -237,7 +238,6 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     Page *newRootPage = buffer_pool_manager_->NewPage(&newRootId);
     InternalPage *newRootNode = reinterpret_cast<InternalPage *>(newRootPage->GetData());
 
-
     newRootNode->Init(newRootId, INVALID_PAGE_ID, internal_max_size_);
     newRootNode->PopulateNewRoot(old_node->GetPageId(), key, new_node->GetPageId());
     root_page_id_ = newRootId;
@@ -263,16 +263,16 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
     // parent node has less than 1 spot left after insertion
-    InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
-    newPage->SetParentPageId(parentNode->GetParentPageId());
-    if(comparator_(key, newPage->KeyAt(0)) < 0) {
+    InternalPage *splittedParent = reinterpret_cast<InternalPage *>(Split(parentNode));
+    splittedParent->SetParentPageId(parentNode->GetParentPageId());
+    if(comparator_(key, splittedParent->KeyAt(0)) < 0) {
       parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
       new_node->SetParentPageId(parentNode->GetPageId());
     } else {
-      newPage->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-      new_node->SetParentPageId(newPage->GetPageId());
+      splittedParent->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+      new_node->SetParentPageId(splittedParent->GetPageId());
     }
-    InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+    InsertIntoParent(parentNode, splittedParent->KeyAt(0), splittedParent, transaction);
 
 
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
@@ -449,94 +449,107 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   root_id_mutex_.lock();
 
   if(IsEmpty()){
-    root_id_mutex_.unlock();
-    return nullptr;
-  }
+     root_id_mutex_.unlock();
+     return nullptr;
+   }
 
-  //start with page is root.
-  page_id_t page_id= root_page_id_;
-  Page *page = buffer_pool_manager_->FetchPage(page_id);
-  BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  // start with page is root.
+  // page_id_t page_id= root_page_id_;
+  // Page *page = buffer_pool_manager_->FetchPage(page_id);
+  // BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
 
-  if (!bppage->IsRootPage()) {
-    if (indicator == 1) {
-      page->RLatch();
-    } else {
-      page->WLatch();
-    }
-    if (transaction != nullptr) {
-      transaction->AddIntoPageSet(page);
-    }
-  }
+  page_id_t currentPageId = root_page_id_;
+  Page *currentPage = buffer_pool_manager_->FetchPage(page_id);
+  BPlusTreePage *currentBPTPage = reinterpret_cast<BPlusTreePage *>(currentPage->GetData());
 
   page_id_t nextDest;
-  while(!bppage->IsLeafPage() || bppage->IsRootPage()) {
-
-    InternalPage *internal = static_cast<InternalPage *>(bppage);//internal is only for decision making here.
-
-    printf("Internal's size is: %i\n",internal->GetSize());
-    if(internal->GetSize()<=1){
-      return(page);
-    }
-
-    if (leftMost) {
-      nextDest = internal->ValueAt(0);
-    } else  {
-      nextDest = internal->Lookup(key, comparator_);
-    }
-
-    printf("Next Dest: %i\n",nextDest);
-    Page *lastPage = page;
-    BPlusTreePage *lastBp = bppage;
-
-
-    //change page to the next wanted destination
-    page = buffer_pool_manager_->FetchPage(nextDest);
-    bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());// bppage is only used for while loop decision-making. page is the one returned.
-
-    if (!bppage->IsRootPage()) {
-      if (indicator == 1) {
-        page->RLatch();
-      } else {
-        page->WLatch();
-      }
-
-      if (transaction != nullptr) {
-        if (indicator == 1) {
-          UnLatchPageSet(transaction, indicator);
-        } else {
-          bool isSafe;
-          if (indicator == 1) {
-            isSafe = true;
-          } else if (indicator == 0) {
-            isSafe = bppage->GetSize() < bppage->GetMaxSize();
-          } else if (indicator == -1) {
-            isSafe = bppage->GetSize() > bppage->GetMinSize();
-          } else {
-            isSafe = false;
-          }
-          if (isSafe) {
-            UnLatchPageSet(transaction, indicator);
-          }
-        }
-      } else {
-        lastPage->RUnlatch();
-        if (lastBp->IsRootPage()) {
-          root_id_mutex_.unlock();
-        }
-        buffer_pool_manager_->UnpinPage(lastPage->GetPageId(), false);
-      }
-      if (transaction != nullptr) {
-        transaction->AddIntoPageSet(page);
-      }
-      page_id = nextDest;
+  while(!currentBPTPage->IsLeafPage()||currentBPTPage->IsRootPage()) {
+    if(leftMost) {
+      nextDest = 
+    } else {
+      nextDest =
     }
   }
+  // if (!bppage->IsRootPage()) {
+  //   if (indicator == 1) {
+  //     page->RLatch();
+  //   } else {
+  //     page->WLatch();
+  //   }
+  //   if (transaction != nullptr) {
+  //     transaction->AddIntoPageSet(page);
+  //   }
+  // }
+
+
+  // while(!bppage->IsLeafPage() || bppage->IsRootPage()) {
+
+  //   //convert current page into internal page for decision making
+  //   InternalPage *internal = static_cast<InternalPage *>(bppage);
+
+  //   printf("Internal's size is: %i\n",internal->GetSize());
+  //   if(internal->GetSize()==0){
+  //     return(page);
+  //   }
+
+  //   if (leftMost) {
+  //     nextDest = internal->ValueAt(0);
+  //   } else  {
+  //     nextDest = internal->Lookup(key, comparator_);
+  //   }
+
+  //   printf("Next Dest: %i\n",nextDest);
+  //   Page *lastPage = page;
+  //   BPlusTreePage *lastBp = bppage;
+
+
+  //   //change page to the next wanted destination
+  //   page = buffer_pool_manager_->FetchPage(nextDest);
+  //   bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());// bppage is only used for while loop decision-making. page is the one returned.
+
+  //   if (!bppage->IsRootPage()) {
+  //     if (indicator == 1) {
+  //       page->RLatch();
+  //     } else {
+  //       page->WLatch();
+  //     }
+
+  //     if (transaction != nullptr) {
+  //       if (indicator == 1) {
+  //         UnLatchPageSet(transaction, indicator);
+  //       } else {
+  //         bool isSafe;
+  //         if (indicator == 1) {
+  //           isSafe = true;
+  //         } else if (indicator == 0) {
+  //           isSafe = bppage->GetSize() < bppage->GetMaxSize();
+  //         } else if (indicator == -1) {
+  //           isSafe = bppage->GetSize() > bppage->GetMinSize();
+  //         } else {
+  //           isSafe = false;
+  //         }
+  //         if (isSafe) {
+  //           UnLatchPageSet(transaction, indicator);
+  //         }
+  //       }
+  //     } else {
+  //       lastPage->RUnlatch();
+  //       if (lastBp->IsRootPage()) {
+  //         root_id_mutex_.unlock();
+  //       }
+  //       buffer_pool_manager_->UnpinPage(lastPage->GetPageId(), false);
+  //     }
+  //     if (transaction != nullptr) {
+  //       transaction->AddIntoPageSet(page);
+  //     }
+  //     page_id = nextDest;
+  //   }
+  // }
   
-  root_id_mutex_.unlock();
-  buffer_pool_manager_->UnpinPage(page_id, true); 
-  return page;
-  // or false if the page was not modified
+  // root_id_mutex_.unlock();
+  // buffer_pool_manager_->UnpinPage(page_id, true); 
+  // return page;
+  // // or false if the page was not modified
 }
 
 /*
