@@ -80,7 +80,6 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) {
-  assert(transaction != nullptr);
   if (IsEmpty()) {
     // if it's empty
     StartNewTree(key, value);
@@ -113,8 +112,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  int max_size = (512 - sizeof(LeafPage)) / sizeof(MappingType) - 1;
-  root->Init(newId, INVALID_PAGE_ID, max_size);
+  root->Init(newId, INVALID_PAGE_ID, leaf_max_size_);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
@@ -133,12 +131,13 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
-  assert(false);
+  
   //getting the leaf page.
   Page *page = FindLeafPage(key, false, 0, transaction);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
   ValueType v = value;
+
 
   // check if value exists
   if(leaf->Lookup(key, &v, comparator_)){//value exists?
@@ -149,6 +148,8 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
   // Now value DNE. Insert.
   if(leaf->GetSize() < leaf->GetMaxSize()) {
+    printf("%i\n",leaf->GetSize());
+    printf("%i\n",leaf->GetMaxSize());
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
@@ -425,9 +426,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   }
   // accessing the root
   LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
-  // init
-  int max_size = (512 - sizeof(LeafPage)) / sizeof(MappingType) - 1;
-  leaf->Init(INVALID_PAGE_ID, INVALID_PAGE_ID, max_size);
+  leaf->Init(INVALID_PAGE_ID, INVALID_PAGE_ID, leaf_max_size_);
   buffer_pool_manager_->UnpinPage(newId, false);
   return INDEXITERATOR_TYPE(leaf, 0, buffer_pool_manager_);
 }
