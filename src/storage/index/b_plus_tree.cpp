@@ -133,7 +133,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
-
+  assert(false);
   //getting the leaf page.
   Page *page = FindLeafPage(key, false, 0, transaction);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
@@ -251,13 +251,11 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   new_node->SetParentPageId(parentId);
   // test if parent node has at least 1 spot left.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
-    assert(true==false);
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
     // parent node has less than 1 spot left after insertion
-    assert(true==false);
     InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
     newPage->SetParentPageId(parentNode->GetParentPageId());
     if(comparator_(key, newPage->KeyAt(0)) < 0) {
