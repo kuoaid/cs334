@@ -138,9 +138,6 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
   ValueType v = value;
-
-  int leafSize = leaf->GetSize();
-  int leafMaxSize = leaf->GetMaxSize();
   
   // check if value exists
   if(leaf->Lookup(key, &v, comparator_)){//value exists?
@@ -150,7 +147,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   }
 
   // Now value DNE. Insert.
-  if(leaf->Insert(key, value, comparator_)>=leafMaxSize){
+  if(leaf->Insert(key, value, comparator_)>=leaf->GetMaxSize();){
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
   }
