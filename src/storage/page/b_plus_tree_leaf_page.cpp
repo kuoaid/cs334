@@ -102,16 +102,25 @@ const MappingType &B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const {
+  //printf("IN leaf page LOOKUP\n");
   int size = GetSize();
+  //printf("1\n");
+  //printf("size: %i\n", size);
   if(size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size-1)) > 0){
+    //printf("2\n");
     return false;
   }
+  //printf("3\n");
   int key_index = KeyIndex(key, comparator);
+  //printf("4\n");
   if(comparator(array[key_index].first, key)==0){
+    //printf("5\n");
     *value = array[key_index].second;
     //LOG_INFO("Leaf page look up,  index: %d", key_index);
+    //printf("6\n");
     return true;
   }
+  //printf("7\n");
   return false;
 }
 
@@ -134,6 +143,7 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &valu
 
   array[targetIndex].first = key;
   array[targetIndex].second = value;
+  //printf("7\n");
   IncreaseSize(1);
   return GetSize();
 }
