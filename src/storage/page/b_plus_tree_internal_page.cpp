@@ -184,11 +184,9 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveHalfTo(BPlusTreeInternalPage *recipient
     j++;
   }
 
-  // 维护size
   SetSize(start);
   recipient->SetSize(lastIndex - start + 1);
 
-  // 维护孩子节点的parent_page_id
   for (int i = 0; i < recipient->GetSize(); i++) {
     auto page_id = recipient->ValueAt(i);
     auto page = buffer_pool_manager->FetchPage(page_id);

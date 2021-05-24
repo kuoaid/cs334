@@ -86,12 +86,12 @@ bool BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     StartNewTree(key, value);
     root_id_mutex_.unlock();
     return InsertIntoLeaf(key, value, transaction);
-  } else {
-    root_id_mutex_.unlock();
-    //not empty, insert into leaf.
-    return InsertIntoLeaf(key, value, transaction);
   }
+
+  root_id_mutex_.unlock();
+  //not empty, insert into leaf.
   return InsertIntoLeaf(key, value, transaction);
+
 }
 
 /*
@@ -133,6 +133,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction) {
+
   //getting the leaf page.
   Page *page = FindLeafPage(key, false, 0, transaction);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
@@ -147,7 +148,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   }
 
   // Now value DNE. Insert.
-  if(leaf->GetSize()< leaf->GetMaxSize()) {
+  if(leaf->GetSize() < leaf->GetMaxSize()) {
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
@@ -162,8 +163,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       leaf->Insert(key, value, comparator_);
     } else {
       splitted->Insert(key, value, comparator_);
-      }
-
+    }
   }
   UnLatchPageSet(transaction, 0);
   return true;
@@ -193,6 +193,7 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     // initialize its metadata
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(newPage->GetData());
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
+
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
@@ -200,9 +201,10 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     // Return the new node.
     return newLeaf;
   }
-  // initialize its metadata
+  // Now it's an internal page, initialize its metadata
   InternalPage *newInternal = reinterpret_cast<InternalPage *>(newPage->GetData());
   newInternal->Init(newId, node->GetParentPageId(), internal_max_size_);
+
   //move half of the entries in node to the new node.
   InternalPage *nodeAsInternal = reinterpret_cast<InternalPage *>(node);
   nodeAsInternal->MoveHalfTo(newInternal, buffer_pool_manager_);
@@ -248,13 +250,16 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
   new_node->SetParentPageId(parentId);
   // test if parent node has at least 1 spot left.
+    printf("%i\n", parentNode->GetSize());
+    printf("%i\n", parentNode->GetMaxSize());
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
+    printf("entereed DNE\n");
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
-
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
-    // parent node has less than 1 spot left after insertion. Well, insert, and split, and do it all over again.
+    printf("entereed DE\n");
+    // parent node has less than 1 spot left after insertion
     InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
     newPage->SetParentPageId(parentNode->GetParentPageId());
     if(comparator_(key, newPage->KeyAt(0)) < 0) {
@@ -269,11 +274,6 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
 
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-
-    
-    InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
-    
-    
   }
 buffer_pool_manager_->UnpinPage(parentId, true);
 }
