@@ -250,15 +250,15 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
   new_node->SetParentPageId(parentId);
   // test if parent node has at least 1 spot left.
-    printf("%i\n", parentNode->GetSize());
-    printf("%i\n", parentNode->GetMaxSize());
+    LOG_INFO("%i\n", parentNode->GetSize());
+    LOG_INFO("%i\n", parentNode->GetMaxSize());
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
-    printf("entereed DNE\n");
+    LOG_INFO("entered DNE");
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
-    printf("entereed DE\n");
+    LOG_INFO("entered DE");
     // parent node has less than 1 spot left after insertion
     InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
     newPage->SetParentPageId(parentNode->GetParentPageId());
