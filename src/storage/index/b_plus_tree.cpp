@@ -137,6 +137,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
   ValueType v = value;
   // check if value exists
+  printf("Checking value exists\n");
   if(leaf->Lookup(key, &v, comparator_)){//value exists?
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     UnLatchPageSet(transaction, 0);
@@ -144,9 +145,10 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   }
 
   // Now value DNE. Insert.
+  printf("Value DNE\n");
   if(leaf->GetSize() < leaf->GetMaxSize()) {
-    printf("%i\n",leaf->GetSize());
-    printf("%i\n",leaf->GetMaxSize());
+    printf("Size of leaf: %i\n",leaf->GetSize());
+    printf("MaxSize of leaf: %i\n",leaf->GetMaxSize());
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
     printf("entered SPLITTING REQUIRED.\n");
@@ -229,9 +231,11 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
                                       Transaction *transaction) {
   if (old_node->IsRootPage()) {
 
+    // make a new root.
     page_id_t newRootId;
     Page *newRootPage = buffer_pool_manager_->NewPage(&newRootId);
     InternalPage *newRootNode = reinterpret_cast<InternalPage *>(newRootPage->GetData());
+
 
     newRootNode->Init(newRootId, INVALID_PAGE_ID, internal_max_size_);
     newRootNode->PopulateNewRoot(old_node->GetPageId(), key, new_node->GetPageId());
@@ -440,15 +444,19 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
  */
 INDEX_TEMPLATE_ARGUMENTS
 Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indicator, Transaction *transaction) {
+
   root_id_mutex_.lock();
+
   if(IsEmpty()){
     root_id_mutex_.unlock();
     return nullptr;
   }
-  page_id_t page_id= root_page_id_;
 
+  //start with page is root.
+  page_id_t page_id= root_page_id_;
   Page *page = buffer_pool_manager_->FetchPage(page_id);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+
   if (!bppage->IsRootPage()) {
     if (indicator == 1) {
       page->RLatch();
@@ -461,9 +469,14 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   }
 
   page_id_t nextDest;
+  while(!bppage->IsLeafPage() || bppage->IsRootPage()) {
 
-  while(!bppage->IsLeafPage() || bppage->IsRootPage()){
-    InternalPage *internal = static_cast<InternalPage *>(bppage);
+    InternalPage *internal = static_cast<InternalPage *>(bppage);//internal is only for decision making here.
+
+    printf("Internal's size is: %i\n",internal->GetSize());
+    if(internal->GetSize()<=1){
+      return(page);
+    }
 
     if (leftMost) {
       nextDest = internal->ValueAt(0);
@@ -471,11 +484,14 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
       nextDest = internal->Lookup(key, comparator_);
     }
 
+    printf("Next Dest: %i\n",nextDest);
     Page *lastPage = page;
     BPlusTreePage *lastBp = bppage;
 
+
+    //change page to the next wanted destination
     page = buffer_pool_manager_->FetchPage(nextDest);
-    bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+    bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());// bppage is only used for while loop decision-making. page is the one returned.
 
     if (!bppage->IsRootPage()) {
       if (indicator == 1) {
