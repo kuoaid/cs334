@@ -156,14 +156,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     UnLatchPageSet(transaction, 0);
     return true;
   }
-  if (leafSize < leafMaxSize) {
-    leafSize = leaf->Insert(key, value, comparator_);
-  } else {
-    leaf->Insert(key, value, comparator_);
-    LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
-    InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
-  }
-  return true;
+  // if (leafSize < leafMaxSize) {
+  //   leafSize = leaf->Insert(key, value, comparator_);
+  // } else {
+  //   leaf->Insert(key, value, comparator_);
+  //   LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+  //   InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
+  // }
+  // return true;
 }
 
 /*
@@ -460,7 +460,17 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
       if (indicator == 1) {
         UnLatchPageSet(transaction, indicator);
       } else {
-        if (bppage->IsSafe(indicator)) {
+        bool isSafe;
+        if (indicator == 1) {
+          isSafe = true;
+        } else if (indicator == 0) {
+          isSafe = bppage->GetSize() < bppage->GetMaxSize();
+        } else if (indicator == -1) {
+          isSafe = bppage->GetSize() > bppage->GetMinSize();
+        } else {
+          isSafe = false;
+        }
+        if (isSafe) {
           UnLatchPageSet(transaction, indicator);
         }
       }
@@ -681,6 +691,7 @@ void BPLUSTREE_TYPE::UnLatchPageSet(Transaction *transaction, int indicator) {
     buffer_pool_manager_->UnpinPage(front->GetPageId(), true);
   }
 }
+
 
 template class BPlusTree<GenericKey<4>, RID, GenericComparator<4>>;
 template class BPlusTree<GenericKey<8>, RID, GenericComparator<8>>;
