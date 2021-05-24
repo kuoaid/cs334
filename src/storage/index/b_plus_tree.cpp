@@ -146,11 +146,8 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     UnLatchPageSet(transaction, 0);
     return false;
   }
-
-  if(leafSize<leafMaxSize){
-    leafSize=leaf->Insert(key, value, comparator_);
-  }else{
-    leaf->Insert(key, value, comparator_);
+  leafSize=leaf->Insert(key, value, comparator_);
+  if(leafSize>=leafMaxSize){
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
   }
