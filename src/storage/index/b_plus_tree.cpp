@@ -169,6 +169,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       splitted->Insert(key, value, comparator_);
     }
   }
+  printf("NEW size of leaf: %i\n",leaf->GetSize());
   UnLatchPageSet(transaction, 0);
   return true;
 }
