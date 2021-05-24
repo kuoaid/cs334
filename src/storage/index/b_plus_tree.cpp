@@ -147,9 +147,23 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   }
 
   // Now value DNE. Insert.
-  if(leaf->Insert(key, value, comparator_)>=leaf->GetMaxSize()){
+  if(leaf->GetSize()< leaf->GetMaxSize()) {
+    leaf->Insert(key, value, comparator_);// TODO: add unlatch
+  }else{
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+
+    splitted->SetNextPageId(leaf->GetNextPageId());
+    leaf->SetNextPageId(splitted->GetPageId());
+    splitted->SetParentPageId(leaf->GetParentPageId());
+
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
+
+    if(comparator_(key, splitted->KeyAt(0)) < 0) {
+      leaf->Insert(key, value, comparator_);
+    } else {
+      splitted->Insert(key, value, comparator_);
+      }
+
   }
   UnLatchPageSet(transaction, 0);
   return true;
@@ -217,10 +231,11 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
 
     newRootNode->Init(newRootId, INVALID_PAGE_ID, internal_max_size_);
     newRootNode->PopulateNewRoot(old_node->GetPageId(), key, new_node->GetPageId());
+    root_page_id_ = newRootId;
     
     old_node->SetParentPageId(newRootId);// there's a new root in town.
     new_node->SetParentPageId(newRootId);
-    root_page_id_ = newRootId;
+    
     UpdateRootPageId(false);
 
     buffer_pool_manager_->UnpinPage(newRootId, true);
@@ -240,12 +255,22 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
   }else{
     // parent node has less than 1 spot left after insertion. Well, insert, and split, and do it all over again.
-    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+    InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
+    newPage->SetParentPageId(parentNode->GetParentPageId());
+    if(comparator_(key, newPage->KeyAt(0)) < 0) {
+      parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+      new_node->SetParentPageId(parentNode->GetPageId());
+    } else {
+      newPage->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+      new_node->SetParentPageId(newPage->GetPageId());
+    }
+    InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
+
 
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
 
-    InternalPage *newPage = reinterpret_cast<InternalPage *>(Split(parentNode));
+    
     InsertIntoParent(parentNode, newPage->KeyAt(0), newPage, transaction);
     
     
