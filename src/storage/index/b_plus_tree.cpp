@@ -108,7 +108,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
     throw std::bad_alloc();
   }
   // accessing the root
-  LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
+  InternalPage *root = reinterpret_cast<InternalPage *>(newRoot->GetData());
 
   // init
   root->Init(newId, INVALID_PAGE_ID, internal_max_size_*2);
@@ -461,23 +461,29 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   }
 
   page_id_t nextDest;
+
   while(!bppage->IsLeafPage() || bppage->IsRootPage()){
     InternalPage *internal = static_cast<InternalPage *>(bppage);
+
     if (leftMost) {
       nextDest = internal->ValueAt(0);
     } else  {
       nextDest = internal->Lookup(key, comparator_);
     }
+
     Page *lastPage = page;
     BPlusTreePage *lastBp = bppage;
+
+    Page *page = buffer_pool_manager_->FetchPage(nextDest);
+    bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+
     if (!bppage->IsRootPage()) {
-      Page *page = buffer_pool_manager_->FetchPage(nextDest);
-      bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
       if (indicator == 1) {
         page->RLatch();
       } else {
         page->WLatch();
       }
+
       if (transaction != nullptr) {
         if (indicator == 1) {
           UnLatchPageSet(transaction, indicator);
@@ -507,10 +513,9 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
         transaction->AddIntoPageSet(page);
       }
       page_id = nextDest;
-    } else {
-      break;
     }
   }
+  
   root_id_mutex_.unlock();
   buffer_pool_manager_->UnpinPage(page_id, true); 
   return page;
