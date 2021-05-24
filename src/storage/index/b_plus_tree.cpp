@@ -146,15 +146,16 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     UnLatchPageSet(transaction, 0);
     return false;
   }
-  
-  if (leafSize < leafMaxSize) {
-    leafSize = leaf->Insert(key, value, comparator_);
-  } else {
-    leaf->Insert(key, value, comparator_);
-    LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
-    InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
-  }
-  return true;
+
+    if(leafSize<leafMaxSize){
+      leafSize=leaf->Insert(key, value, comparator_);
+    }else{
+      leaf->Insert(key, value, comparator_);
+      LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
+      InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
+    }
+    UnLatchPageSet(transaction, 0);
+    return true;
 }
 
 /*
