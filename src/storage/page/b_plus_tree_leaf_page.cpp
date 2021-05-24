@@ -102,9 +102,14 @@ const MappingType &B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const {
-  int index = KeyIndex(key, comparator);
-  if (GetSize() > 0 && index < GetSize() && comparator(key, array[index].first) == 0) {
-    *value = array[index].second;
+  int size = GetSize();
+  if(size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size-1)) > 0){
+    return false;
+  }
+  int key_index = KeyIndex(key, comparator);
+  if(comparator(array[key_index].first, key)==0){
+    value = array[key_index].second;
+    //LOG_INFO("Leaf page look up,  index: %d", key_index);
     return true;
   }
   return false;
