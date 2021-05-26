@@ -190,7 +190,10 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
-
+    
+    if (node->IsRootPage()) {
+      node->SetMaxSize(leaf_max_size_);
+    }
     // Return the new node.
     return newLeaf;
   }
