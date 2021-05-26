@@ -156,8 +156,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
     if(comparator_(key, splitted->KeyAt(0)) < 0) {
       leaf->Insert(key, value, comparator_);
+      if (leaf->GetSize() > leaf->GetMaxSize()) {
+        leaf->MoveLastToFrontOf(splitted);
+      }
     } else {
       splitted->Insert(key, value, comparator_);
+      if (splitted->GetSize() > splitted->GetMaxSize()) {
+        splitted->MoveFirstToEndOf(leaf);
+      }
     }
   }
   UnLatchPageSet(transaction, 0);
@@ -187,13 +193,14 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(newPage->GetData());
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
     
+    if (node->IsRootPage()) {
+      node->SetMaxSize(leaf_max_size_);
+    }
+
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
     nodeAsLeaf->MoveHalfTo(newLeaf);
     
-    if (node->IsRootPage()) {
-      node->SetMaxSize(leaf_max_size_);
-    }
     // Return the new node.
     return newLeaf;
   }

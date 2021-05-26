@@ -211,7 +211,18 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyAllFrom(MappingType *items, int size) { ass
  * Remove the first key & value pair from this page to "recipient" page.
  */
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) { assert(false); }
+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) {
+  recipient->array[recipient->GetSize()-1].first = array[0].first;
+  recipient->array[recipient->GetSize()-1].second = array[0].second;
+
+  for (int i = 0; i < GetSize()-1; i++) {
+    array[i].first = array[i+1].first;
+    array[i].second = array[i+1].second;
+  }
+  
+  IncreaseSize(-1);
+  recipient->IncreaseSize(1);
+}
 
 /*
  * Copy the item into the end of my item list. (Append item to my array)
@@ -223,7 +234,19 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyLastFrom(const MappingType &item) { assert(
  * Remove the last key & value pair from this page to "recipient" page.
  */
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient) { assert(false); }
+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient) {
+  // adjust recipient: 全部往后挪一位
+  for (int i = recipient->GetSize(); i > 0; i--) {
+    recipient->array[i].first = recipient->array[i-1].first;
+    recipient->array[i].second = recipient->array[i-1].second;
+  }
+
+  recipient->array[0].first = array[GetSize()-1].first;
+  recipient->array[0].second = array[GetSize()-1].second;
+
+  recipient->IncreaseSize(1);
+  IncreaseSize(-1);
+}
 
 /*
  * Insert item at the front of my items. Move items accordingly.
