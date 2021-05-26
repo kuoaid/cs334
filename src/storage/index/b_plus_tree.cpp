@@ -111,7 +111,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  root->Init(newId, INVALID_PAGE_ID, internal_max_size_);
+  root->Init(newId, INVALID_PAGE_ID, leaf_max_size_);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
@@ -198,10 +198,6 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     // initialize its metadata
     LeafPage *newLeaf = reinterpret_cast<LeafPage *>(newPage->GetData());
     newLeaf->Init(newId, node->GetParentPageId(), leaf_max_size_);
-    
-    if (node->IsRootPage()) {
-      node->SetMaxSize(leaf_max_size_);
-    }
 
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
