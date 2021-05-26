@@ -110,11 +110,11 @@ const MappingType &B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) {
 INDEX_TEMPLATE_ARGUMENTS
 bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const {
   int size = GetSize();
-  if(size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size-1)) > 0){
+  if (size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size - 1)) > 0) {
     return false;
   }
   int key_index = KeyIndex(key, comparator);
-  if(comparator(array[key_index].first, key)==0){
+  if (comparator(array[key_index].first, key) == 0) {
     *value = array[key_index].second;
     return true;
   }
@@ -155,8 +155,8 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &valu
  */
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalfTo(BPlusTreeLeafPage *recipient) {
-  //recipient->SetNextPageId(GetNextPageId());
-  //SetNextPageId(recipient->GetPageId());
+  // recipient->SetNextPageId(GetNextPageId());
+  // SetNextPageId(recipient->GetPageId());
   int lastIndex = GetSize() - 1;
   int copyStartIndex = lastIndex / 2 + 1;
   int i = 0;
@@ -167,7 +167,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalfTo(BPlusTreeLeafPage *recipient) {
     i++;
     j++;
   }
-  // 重新设置大小
+
   SetSize(copyStartIndex);
   recipient->SetSize(lastIndex - copyStartIndex + 1);
 }
@@ -189,7 +189,21 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyNFrom(MappingType *items, int size) { asser
  * @return   page size after deletion
  */
 INDEX_TEMPLATE_ARGUMENTS
-int B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) { return 1; }
+int B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) { 
+
+  assert(GetSize() < GetMaxSize() + 1);
+
+  int targetIndex = KeyIndex(key, comparator);
+
+  for (int i = targetIndex+1; i < GetSize(); i++) {
+    array[i - 1].first = array[i].first;
+    array[i - 1].second = array[i].second;
+  }
+  
+  IncreaseSize(-1);
+  return GetSize();
+
+}
 
 /*****************************************************************************
  * MERGE
@@ -212,14 +226,14 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyAllFrom(MappingType *items, int size) { ass
  */
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) {
-  recipient->array[recipient->GetSize()-1].first = array[0].first;
-  recipient->array[recipient->GetSize()-1].second = array[0].second;
+  recipient->array[recipient->GetSize() - 1].first = array[0].first;
+  recipient->array[recipient->GetSize() - 1].second = array[0].second;
 
-  for (int i = 0; i < GetSize()-1; i++) {
-    array[i].first = array[i+1].first;
-    array[i].second = array[i+1].second;
+  for (int i = 0; i < GetSize() - 1; i++) {
+    array[i].first = array[i + 1].first;
+    array[i].second = array[i + 1].second;
   }
-  
+
   IncreaseSize(-1);
   recipient->IncreaseSize(1);
 }
@@ -237,12 +251,12 @@ INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient) {
   // adjust recipient: 全部往后挪一位
   for (int i = recipient->GetSize(); i > 0; i--) {
-    recipient->array[i].first = recipient->array[i-1].first;
-    recipient->array[i].second = recipient->array[i-1].second;
+    recipient->array[i].first = recipient->array[i - 1].first;
+    recipient->array[i].second = recipient->array[i - 1].second;
   }
 
-  recipient->array[0].first = array[GetSize()-1].first;
-  recipient->array[0].second = array[GetSize()-1].second;
+  recipient->array[0].first = array[GetSize() - 1].first;
+  recipient->array[0].second = array[GetSize() - 1].second;
 
   recipient->IncreaseSize(1);
   IncreaseSize(-1);

@@ -17,7 +17,8 @@ INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, B
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE::~IndexIterator() {
-  if (leaf_ != nullptr) {;
+  if (leaf_ != nullptr) {
+    ;
   }
 }
 
@@ -31,13 +32,12 @@ bool INDEXITERATOR_TYPE::isEnd() {
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
-  return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) || (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
+  return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) ||
+         (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
-  return !operator==(itr);
-}
+bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const { return !operator==(itr); }
 
 INDEX_TEMPLATE_ARGUMENTS
 const MappingType &INDEXITERATOR_TYPE::operator*() {

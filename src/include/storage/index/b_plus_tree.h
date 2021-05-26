@@ -10,10 +10,10 @@
 //===----------------------------------------------------------------------===//
 #pragma once
 
+#include <mutex>
 #include <queue>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include "concurrency/transaction.h"
 #include "storage/index/index_iterator.h"
@@ -106,7 +106,6 @@ class BPlusTree {
   void UnLatchPageSet(Transaction *transaction, int indicator);
 
   std::string ToString(BPlusTreePage *page, BufferPoolManager *bpm) const;
-
 
   // member variable
   std::string index_name_;
