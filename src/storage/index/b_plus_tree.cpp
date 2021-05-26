@@ -156,15 +156,15 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
     if(comparator_(key, splitted->KeyAt(0)) <= 0) {
       leaf->Insert(key, value, comparator_);
-      printf("leaf->GetSize(): %i\n", leaf->GetSize());
-      printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
+      //printf("leaf->GetSize(): %i\n", leaf->GetSize());
+      //printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
       if (leaf->GetSize() > leaf->GetMaxSize()) {
         leaf->MoveLastToFrontOf(splitted);
       }
     } else {
       splitted->Insert(key, value, comparator_);
-      printf("splitted->GetSize(): %i\n", splitted->GetSize());
-      printf("splitted->GetMaxSize(): %i\n", splitted->GetMaxSize());
+      //printf("splitted->GetSize(): %i\n", splitted->GetSize());
+      //printf("splitted->GetMaxSize(): %i\n", splitted->GetMaxSize());
       if (splitted->GetSize() > splitted->GetMaxSize()) {
         splitted->MoveFirstToEndOf(leaf);
       }
