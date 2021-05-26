@@ -55,8 +55,8 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   bool res = leaf->Lookup(key, container, comparator_);
   if (res) {
     result->push_back(*container);
-  } else {
   }
+  delete container;
   if (transaction != nullptr) {
     UnLatchPageSet(transaction, false);
   } else {
@@ -230,6 +230,8 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     new_node->SetParentPageId(newRootId);
 
     UpdateRootPageId(false);
+
+    root_id_mutex_.unlock();
 
     buffer_pool_manager_->UnpinPage(newRootId, true);
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
