@@ -63,6 +63,7 @@ TEST(BPlusTreeTests, InsertTest1) {
   auto iterator = tree.Begin(index_key);
   // LOG_INFO("iterator != tree.end(): %i", iterator != tree.end());
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
+    printf("!\n");
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
@@ -70,6 +71,7 @@ TEST(BPlusTreeTests, InsertTest1) {
     count++;
     // printf("iterator != tree.end(): %i\n", iterator != tree.end());
   }
+  printf("survived\n");
   EXPECT_EQ(current_key, keys.size() + 1);
   bpm->UnpinPage(HEADER_PAGE_ID, true);
   delete key_schema;

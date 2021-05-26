@@ -90,13 +90,13 @@ INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
   int compareResult;
   compareResult = comparator(array[1].first, key);
-  if (compareResult >= 0) { // if key is less than or equal to array[1].first
+  if (compareResult > 0) { // if key is less than or equal to array[1].first
     printf("array[0].second returned: %i", array[0].second);
     return array[0].second;
   }
   for (int i = 0; i < GetSize() - 1; i++) {
     compareResult = comparator(array[i+1].first, key);
-    if (compareResult >= 0) {
+    if (compareResult > 0) {
       printf("array[i].second returned: %i", array[i].second);
       return array[i].second;
     }
@@ -158,7 +158,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(const ValueType &old_value,
   array[0].second = old_value;
   array[1].first = new_key;
   array[1].second = new_value;
-  SetSize(2);
+  SetSize(1);
 }
 /*
  * Insert new_key & new_value pair right after the pair with its value == old_value

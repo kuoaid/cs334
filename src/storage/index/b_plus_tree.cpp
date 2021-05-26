@@ -52,7 +52,7 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   Page *page = FindLeafPage(key, false, 1, transaction);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
-
+  printf("page->GetPageId: %i\n", page->GetPageId());
   ValueType *container = new ValueType();
   bool res = leaf->Lookup(key, container, comparator_);
   if (res) {
@@ -140,7 +140,9 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   //getting the leaf page.
   Page *page = FindLeafPage(key, false, 0, transaction);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
+  printf("InsertIntoLeaf: bppage->IsRootPage(): %i\n", bppage->IsRootPage());
   LeafPage *leaf = reinterpret_cast<LeafPage *>(bppage);
+  printf("InsertIntoLeaf: leaf->GetNextPageId() == INVALID_PAGE_ID: %i\n", leaf->GetNextPageId() == INVALID_PAGE_ID);
   ValueType v = value;
   // check if value exists
   //printf("Checking value exists\n");
@@ -171,6 +173,8 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     //printf("entered SPLITTING REQUIRED.\n");
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     //printf("setting next page ID's\n");
+    printf("leaf->GetNextPageId == INVALID_PAGE_ID %i\n", leaf->GetNextPageId() == INVALID_PAGE_ID);
+    printf("bppage->IsRootPage(): %i\n", bppage->IsRootPage());
     splitted->SetNextPageId(leaf->GetNextPageId());
     leaf->SetNextPageId(splitted->GetPageId());
     splitted->SetParentPageId(leaf->GetParentPageId());
@@ -636,7 +640,7 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   printf("out of loop\n");
   //printf("14\n");
   root_id_mutex_.unlock();
-  //buffer_pool_manager_->UnpinPage(page_id, true); 
+  buffer_pool_manager_->UnpinPage(page_id, true); 
   //printf("15\n");
   printf("page.page_id_ outsdie of loop: %i\n", page->GetPageId());
   return page;

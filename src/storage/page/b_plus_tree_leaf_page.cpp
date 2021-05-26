@@ -176,8 +176,8 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &valu
  */
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalfTo(BPlusTreeLeafPage *recipient) {
-  recipient->SetNextPageId(GetNextPageId());
-  SetNextPageId(recipient->GetPageId());
+  //recipient->SetNextPageId(GetNextPageId());
+  //SetNextPageId(recipient->GetPageId());
   int lastIndex = GetSize() - 1;
   int copyStartIndex = lastIndex / 2 + 1;
   int i = 0;
