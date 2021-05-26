@@ -147,6 +147,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   // Now value DNE. Insert.
   if(leaf->GetSize() < leaf->GetMaxSize()) {
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
+    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
   }else{
     leaf->Insert(key, value, comparator_);
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
@@ -273,7 +274,6 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
       }
       InsertIntoParent(parentNode, splittedParent->KeyAt(0), splittedParent, transaction);
 
-      printf("buffer_pool_manager_->UnpinPage(parentId, true) = %i\n", buffer_pool_manager_->UnpinPage(parentId, true));
       buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
       buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     }
@@ -418,11 +418,6 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
-  // INDEXITERATOR_TYPE iterator = begin();
-  // while (iterator.isEnd() == false) {
-  //   ++iterator;
-  // }
-  // return iterator;
   page_id_t newId;
   // LOG_INFO("getting to newroot");
   Page *page = buffer_pool_manager_->NewPage(&newId);
@@ -454,10 +449,6 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
   page_id_t page_id= root_page_id_;
   Page *page = buffer_pool_manager_->FetchPage(page_id);
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
-  if (!root_id_mutex_.try_lock()) {
-  } else {
-    root_id_mutex_.unlock();
-  }
   if (indicator == 1) {
     page->RLatch();
   } else {
