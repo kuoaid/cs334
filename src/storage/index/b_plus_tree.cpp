@@ -285,7 +285,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
  */
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::Remove(const KeyType &key, Transaction *transaction) {
-  if(IsEmpty()) {
+  if (IsEmpty()) {
     return;
   }
   auto *deletingPage = FindLeafPage(key, false, 1);
