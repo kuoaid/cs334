@@ -89,12 +89,12 @@ INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
   int compareResult;
    compareResult = comparator(array[1].first, key);
-   if (compareResult >= 0) { // if key is less than or equal to array[1].first
+   if (compareResult > 0) { // if key is less than or equal to array[1].first
     return array[0].second;
   }
   for (int i = 0; i < GetSize() - 1; i++) {
     compareResult = comparator(array[i+1].first, key);
-    if (compareResult >= 0) {
+    if (compareResult > 0) {
       return array[i].second;
     }
   }
