@@ -241,6 +241,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     new_node->SetParentPageId(parentId);
     // test if parent node has at least 1 spot left.
     if (parentNode->GetSize() < parentNode->GetMaxSize()) {                            // does not exceed
+      printf("old_node->GetPageId: %i\n", old_node->GetPageId());
       parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());  // insert into copy
       buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
       buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
@@ -249,9 +250,11 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
       InternalPage *splittedParent = reinterpret_cast<InternalPage *>(Split(parentNode));
       splittedParent->SetParentPageId(parentNode->GetParentPageId());
       if (comparator_(key, splittedParent->KeyAt(0)) < 0) {
+        printf("old_node->GetPageId: %i\n", old_node->GetPageId());
         parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
         new_node->SetParentPageId(parentNode->GetPageId());
       } else {
+        printf("old_node->GetPageId: %i\n", old_node->GetPageId());
         splittedParent->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
         new_node->SetParentPageId(splittedParent->GetPageId());
       }
