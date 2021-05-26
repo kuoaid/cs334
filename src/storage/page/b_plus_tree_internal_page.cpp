@@ -209,18 +209,6 @@ int B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(int index) {
   return GetSize();
 }
 
-/*
- * Remove the only key & value pair in internal page and return the value
- * NOTE: only call this method within AdjustRoot()(in b_plus_tree.cpp)
- */
-/*
-INDEX_TEMPLATE_ARGUMENTS
-ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::RemoveAndReturnOnlyChild() {
-    IncreaseSize(-1);
-    assert(GetSize() == 1);
-    return ValueAt(0);
-}
-*/
 /*****************************************************************************
  * MERGE
  *****************************************************************************/
