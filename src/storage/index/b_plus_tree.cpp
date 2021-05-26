@@ -273,7 +273,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
       }
       InsertIntoParent(parentNode, splittedParent->KeyAt(0), splittedParent, transaction);
 
-      buffer_pool_manager_->UnpinPage(parentId, true);
+      printf("buffer_pool_manager_->UnpinPage(parentId, true) = %i\n", buffer_pool_manager_->UnpinPage(parentId, true););
       buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
       buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     }
@@ -719,7 +719,7 @@ void BPLUSTREE_TYPE::UnLatchPageSet(Transaction *transaction, int indicator) {
     if (bp->IsRootPage()) {
       root_id_mutex_.unlock();
     }
-    //buffer_pool_manager_->UnpinPage(front->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(front->GetPageId(), true);
   }
 }
 
