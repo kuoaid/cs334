@@ -154,7 +154,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
     //InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
 
-    if(comparator_(key, splitted->KeyAt(0)) < 0) {
+    if(comparator_(key, splitted->KeyAt(0)) <= 0) {
       leaf->Insert(key, value, comparator_);
       printf("leaf->GetSize(): %i\n", leaf->GetSize());
       printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
@@ -169,7 +169,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
         splitted->MoveFirstToEndOf(leaf);
       }
     }
-    InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
+    InsertIntoParent(leaf, leaf->KeyAt(leaf->GetSize()-1), splitted, transaction);
   }
   UnLatchPageSet(transaction, 0);
   return true;
