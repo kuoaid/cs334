@@ -126,6 +126,7 @@ INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value, const KeyType &new_key,
                                                     const ValueType &new_value) {
   int index = ValueIndex(old_value);
+  printf("index: %i\n", index);
   assert(index != -1);
 
   int i;
