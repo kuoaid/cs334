@@ -229,7 +229,9 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     old_node->SetParentPageId(newRootId);  // there's a new root in town.
     new_node->SetParentPageId(newRootId);
 
-    UpdateRootPageId(true);
+    UpdateRootPageId(false);
+
+    root_id_mutex_.unlock();
 
     buffer_pool_manager_->UnpinPage(newRootId, true);
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
