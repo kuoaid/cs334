@@ -42,6 +42,7 @@ bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const { return !op
 INDEX_TEMPLATE_ARGUMENTS
 const MappingType &INDEXITERATOR_TYPE::operator*() {
   if (isEnd()) {
+    printf("here;\n");
     throw std::out_of_range("IndexIterator: out of range");
   }
   return leaf_->GetItem(index_);
@@ -61,6 +62,7 @@ INDEXITERATOR_TYPE &INDEXITERATOR_TYPE::operator++() {
 
       leaf_ = reinterpret_cast<B_PLUS_TREE_LEAF_PAGE_TYPE *>(next_page->GetData());
       index_ = 0;
+      bpm_->UnpinPage(next_page_id, false);
     }
   }
   return *this;
