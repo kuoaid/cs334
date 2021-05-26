@@ -284,7 +284,21 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
  *                             This method should unlatch and delete before returning.
  */
 INDEX_TEMPLATE_ARGUMENTS
-void BPLUSTREE_TYPE::Remove(const KeyType &key, Transaction *transaction) {}
+void BPLUSTREE_TYPE::Remove(const KeyType &key, Transaction *transaction) {
+  if(IsEmpty()) {return;}
+
+  // auto start_leaf = FindLeafPage(key, false, 1);
+  // BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
+  // LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);  
+
+
+  auto *deletingPage = FindLeafPage(key, false, 1);
+  BPlusTreePage *deletingBPTPage = reinterpret_cast<BPlusTreePage *>(deletingPage->GetData());
+  LeafPage *deletingLeafPage = reinterpret_cast<LeafPage *>(deletingBPTPage);
+
+  deletingLeafPage->Remove(key, comparator_);
+  buffer_pool_manager_->UnpinPage(deletingPage->GetPageId(), false);
+}
 
 /*
  * You first need to find the sibling of input page. If sibling's size + input
