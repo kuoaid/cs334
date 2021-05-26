@@ -252,35 +252,34 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     buffer_pool_manager_->UnpinPage(newRootId, true);
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-  }
+  } else {//begin insertion
+    page_id_t parentId = old_node->GetParentPageId();
+    InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
+    new_node->SetParentPageId(parentId);
+    // test if parent node has at least 1 spot left.
+    if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
+      parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
+      buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+      buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
+    }else{
+      // parent node has less than 1 spot left after insertion
+      InternalPage *splittedParent = reinterpret_cast<InternalPage *>(Split(parentNode));
+      splittedParent->SetParentPageId(parentNode->GetParentPageId());
+      if(comparator_(key, splittedParent->KeyAt(0)) < 0) {
+        parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+        new_node->SetParentPageId(parentNode->GetPageId());
+      } else {
+        splittedParent->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
+        new_node->SetParentPageId(splittedParent->GetPageId());
+      }
+      InsertIntoParent(parentNode, splittedParent->KeyAt(0), splittedParent, transaction);
 
-  //begin insertion
-  page_id_t parentId = old_node->GetParentPageId();
-  InternalPage *parentNode = reinterpret_cast<InternalPage *>((buffer_pool_manager_->FetchPage(parentId))->GetData());// make a copy
-  new_node->SetParentPageId(parentId);
-  // test if parent node has at least 1 spot left.
-  if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
-    parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
-    buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
-    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
-  }else{
-    // parent node has less than 1 spot left after insertion
-    InternalPage *splittedParent = reinterpret_cast<InternalPage *>(Split(parentNode));
-    splittedParent->SetParentPageId(parentNode->GetParentPageId());
-    if(comparator_(key, splittedParent->KeyAt(0)) < 0) {
-      parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-      new_node->SetParentPageId(parentNode->GetPageId());
-    } else {
-      splittedParent->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
-      new_node->SetParentPageId(splittedParent->GetPageId());
+
+      buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
+      buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     }
-    InsertIntoParent(parentNode, splittedParent->KeyAt(0), splittedParent, transaction);
-
-
-    buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
-    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(parentId, true);
   }
-buffer_pool_manager_->UnpinPage(parentId, true);
 }
 
 /*****************************************************************************
