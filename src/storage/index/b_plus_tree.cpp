@@ -111,7 +111,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  root->Init(newId, INVALID_PAGE_ID, leaf_max_size_);
+  root->Init(newId, INVALID_PAGE_ID, internal_max_size_);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
