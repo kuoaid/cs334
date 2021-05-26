@@ -55,8 +55,8 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   bool res = leaf->Lookup(key, container, comparator_);
   if (res) {
     result->push_back(*container);
-  } else {
   }
+  delete container;
   if (transaction != nullptr) {
     UnLatchPageSet(transaction, false);
   } else {
