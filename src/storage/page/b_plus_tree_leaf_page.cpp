@@ -191,6 +191,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyNFrom(MappingType *items, int size) { asser
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) {
   assert(GetSize() < GetMaxSize() + 1);
+<<<<<<< HEAD
 
   for (int i = 0; i < GetSize(); i++) {  // search for the key
 
@@ -198,16 +199,28 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &
 
       int targetIndex = KeyIndex(key, comparator);
 
+=======
+  for (int i = 0; i < GetSize(); i++) {
+    if (comparator(array[i].first, key) == 0) {
+      int targetIndex = KeyIndex(key, comparator);
+>>>>>>> 9add60b108b9a3990b426d77bc7ad16e88d4f9a8
       for (int i = targetIndex + 1; i < GetSize(); i++) {
         array[i - 1].first = array[i].first;
         array[i - 1].second = array[i].second;
       }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9add60b108b9a3990b426d77bc7ad16e88d4f9a8
       IncreaseSize(-1);
       return GetSize();
     }
   }
+<<<<<<< HEAD
   return GetSize();  // no hit, return the size.
+=======
+  return GetSize();
+>>>>>>> 9add60b108b9a3990b426d77bc7ad16e88d4f9a8
 }
 
 /*****************************************************************************

@@ -29,6 +29,10 @@ bool INDEXITERATOR_TYPE::isEnd() {
     return true;
   }
   printf("leaf != nullptr\n");
+  printf("index_: %i\n", index_);
+  printf("leaf_->GetSize(): %i\n", leaf_->GetSize());
+  printf("leaf_->GetNextPageId() == INVALID_PAGE_ID: %i\n", leaf_->GetNextPageId() == INVALID_PAGE_ID);
+  printf("\n");
   return (index_ >= leaf_->GetSize() && leaf_->GetNextPageId() == INVALID_PAGE_ID);
 }
 

@@ -288,11 +288,6 @@ void BPLUSTREE_TYPE::Remove(const KeyType &key, Transaction *transaction) {
   if (IsEmpty()) {
     return;
   }
-
-  // auto start_leaf = FindLeafPage(key, false, 1);
-  // BPlusTreePage *start_leaf_bp = reinterpret_cast<BPlusTreePage *>(start_leaf->GetData());
-  // LeafPage *start_leaf_lf = reinterpret_cast<LeafPage *>(start_leaf_bp);
-
   auto *deletingPage = FindLeafPage(key, false, 1);
   BPlusTreePage *deletingBPTPage = reinterpret_cast<BPlusTreePage *>(deletingPage->GetData());
   LeafPage *deletingLeafPage = reinterpret_cast<LeafPage *>(deletingBPTPage);
@@ -421,8 +416,6 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
-  // Print(buffer_pool_manager_);
-  // printf("\n");
   page_id_t newId;
   Page *page = buffer_pool_manager_->NewPage(&newId);
 
