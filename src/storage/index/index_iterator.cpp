@@ -25,13 +25,14 @@ INDEXITERATOR_TYPE::~IndexIterator() {
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::isEnd() {
   if (leaf_ == nullptr) {
-    printf("leaf == nullptr\n");
+    //printf("leaf == nullptr\n");
     return true;
   }
-  printf("leaf != nullptr\n");
-  printf("index_: %i\n", index_);
-  printf("leaf_->GetSize(): %i\n", leaf_->GetSize());
-  printf("leaf_->GetNextPageId() == INVALID_PAGE_ID: %i\n", leaf_->GetNextPageId() == INVALID_PAGE_ID);
+  // printf("leaf != nullptr\n");
+  // printf("index_: %i\n", index_);
+  // printf("leaf_->GetSize(): %i\n", leaf_->GetSize());
+  // printf("leaf_->GetNextPageId() == INVALID_PAGE_ID: %i\n", leaf_->GetNextPageId() == INVALID_PAGE_ID);
+  // printf("\n");
   return (index_ >= leaf_->GetSize() && leaf_->GetNextPageId() == INVALID_PAGE_ID);
 }
 
