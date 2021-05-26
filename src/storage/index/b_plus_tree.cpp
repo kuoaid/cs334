@@ -421,17 +421,14 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   //Print(buffer_pool_manager_);
-  //page_id_t newId;
-  // LOG_INFO("getting to newroot");
-  // Page *page = buffer_pool_manager_->NewPage(&newId);
+  page_id_t newId;
+  Page *page = buffer_pool_manager_->NewPage(&newId);
 
-  // if (page == nullptr) {
-  //   printf("end()\n");
-  //   throw std::bad_alloc();
-  // }
+  if (page == nullptr) {
+    throw std::bad_alloc();
+  }
   // accessing the root
-  //LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
-  LeafPage *leaf = nullptr;
+  LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
   leaf->Init(INVALID_PAGE_ID, INVALID_PAGE_ID, leaf_max_size_);
   //buffer_pool_manager_->UnpinPage(newId, false);
   return INDEXITERATOR_TYPE(leaf, 0, buffer_pool_manager_);
