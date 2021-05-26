@@ -105,6 +105,7 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   Page *newRoot = buffer_pool_manager_->NewPage(&newId);
 
   if (newRoot == nullptr) {
+    printf("StartNewTree\n");
     throw std::bad_alloc();
   }
   // accessing the root
@@ -190,6 +191,7 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
   Page *newPage = buffer_pool_manager_->NewPage(&newId);
 
   if (newPage == nullptr) {
+    printf("Split\n");
     throw std::bad_alloc();
   }
 
@@ -426,6 +428,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   Page *page = buffer_pool_manager_->NewPage(&newId);
 
   if (page == nullptr) {
+    printf("end()\n");
     throw std::bad_alloc();
   }
   // accessing the root
