@@ -43,6 +43,7 @@ bool INDEXITERATOR_TYPE::operator!=(const IndexIterator &itr) const {
 INDEX_TEMPLATE_ARGUMENTS
 const MappingType &INDEXITERATOR_TYPE::operator*() {
   if (isEnd()) {
+    printf("here;\n");
     throw std::out_of_range("IndexIterator: out of range");
   }
   return leaf_->GetItem(index_);
