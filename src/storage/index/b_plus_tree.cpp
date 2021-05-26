@@ -165,7 +165,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     printf("sate of the array\n");
     for (int j = 0; j < leaf->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", leaf->KeyAt(j).ToString());
+        //printf("%lld", leaf->KeyAt(j).ToString());
         printf("\n");
       }
   }else{
@@ -189,14 +189,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       printf("sate of original array:\n");
       for (int j = 0; j < leaf->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", leaf->KeyAt(j).ToString());
+        //printf("%lld", leaf->KeyAt(j).ToString());
         printf("\n");
       }
       //print original array
       printf("sate of splitted array:\n");
       for (int j = 0; j < splitted->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", splitted->KeyAt(j).ToString());
+        //printf("%lld", splitted->KeyAt(j).ToString());
         printf("\n");
       }
       leaf->Insert(key, value, comparator_);
@@ -205,14 +205,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       printf("sate of original array:\n");
       for (int j = 0; j < leaf->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", leaf->KeyAt(j).ToString());
+        //printf("%lld", leaf->KeyAt(j).ToString());
         printf("\n");
       }
       //print original array
       printf("sate of splitted array:\n");
       for (int j = 0; j < splitted->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", splitted->KeyAt(j).ToString());
+        //printf("%lld", splitted->KeyAt(j).ToString());
         printf("\n");
       }
     } else {
@@ -223,14 +223,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       printf("sate of original array:\n");
       for (int j = 0; j < leaf->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", leaf->KeyAt(j).ToString());
+        //printf("%lld", leaf->KeyAt(j).ToString());
         printf("\n");
       }
       //print original array
       printf("sate of splitted array:\n");
       for (int j = 0; j < splitted->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", splitted->KeyAt(j).ToString());
+        //printf("%lld", splitted->KeyAt(j).ToString());
         printf("\n");
       }
       splitted->Insert(key, value, comparator_);
@@ -239,14 +239,14 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
       printf("sate of original array:\n");
       for (int j = 0; j < leaf->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", leaf->KeyAt(j).ToString());
+        //printf("%lld", leaf->KeyAt(j).ToString());
         printf("\n");
       }
       //print original array
       printf("sate of splitted array:\n");
       for (int j = 0; j < splitted->GetSize(); j++) {
         printf("number: ");
-        printf("%lld", splitted->KeyAt(j).ToString());
+        //printf("%lld", splitted->KeyAt(j).ToString());
         printf("\n");
       }
     }
@@ -569,7 +569,7 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
       printf("state of internal node:\n");
       for (int j = 0; j < internal->GetSize(); j++) {
         printf("key: ");
-        printf("%lld", internal->KeyAt(j).ToString());
+        //printf("%lld", internal->KeyAt(j).ToString());
         printf("\n");
         printf("value: ");
         printf("%d", internal->ValueAt(j));
