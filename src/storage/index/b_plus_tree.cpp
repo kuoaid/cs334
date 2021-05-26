@@ -147,6 +147,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   if(leaf->GetSize() < leaf->GetMaxSize()) {
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
   }else{
+    leaf->Insert(key, value, comparator_);
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     splitted->SetNextPageId(leaf->GetNextPageId());
     leaf->SetNextPageId(splitted->GetPageId());
@@ -154,22 +155,22 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
     //InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
 
-    if(comparator_(key, splitted->KeyAt(0)) <= 0) {
-      leaf->Insert(key, value, comparator_);
-      //printf("leaf->GetSize(): %i\n", leaf->GetSize());
-      //printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
-      if (leaf->GetSize() > leaf->GetMaxSize()) {
-        leaf->MoveLastToFrontOf(splitted);
-      }
-    } else {
-      splitted->Insert(key, value, comparator_);
-      //printf("splitted->GetSize(): %i\n", splitted->GetSize());
-      //printf("splitted->GetMaxSize(): %i\n", splitted->GetMaxSize());
-      if (splitted->GetSize() > splitted->GetMaxSize()) {
-        splitted->MoveFirstToEndOf(leaf);
-      }
-    }
-    InsertIntoParent(leaf, leaf->KeyAt(leaf->GetSize()-1), splitted, transaction);
+    // if(comparator_(key, splitted->KeyAt(0)) < 0) {
+    //   leaf->Insert(key, value, comparator_);
+    //   printf("leaf->GetSize(): %i\n", leaf->GetSize());
+    //   printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
+    //   if (leaf->GetSize() > leaf->GetMaxSize()) {
+    //     leaf->MoveLastToFrontOf(splitted);
+    //   }
+    // } else {
+    //   splitted->Insert(key, value, comparator_);
+    //   printf("splitted->GetSize(): %i\n", splitted->GetSize());
+    //   printf("splitted->GetMaxSize(): %i\n", splitted->GetMaxSize());
+    //   if (splitted->GetSize() > splitted->GetMaxSize()) {
+    //     splitted->MoveFirstToEndOf(leaf);
+    //   }
+    // }
+    InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
   }
   UnLatchPageSet(transaction, 0);
   return true;
