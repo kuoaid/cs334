@@ -511,6 +511,7 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
     page_id = nextDest;
   }
   root_id_mutex_.unlock();
+  buffer_pool_manager_->UnpinPage(nextDest, true); 
   buffer_pool_manager_->UnpinPage(page_id, true); 
   return page;
 }
