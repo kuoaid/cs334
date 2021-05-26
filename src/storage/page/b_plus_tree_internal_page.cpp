@@ -127,7 +127,7 @@ int B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value, 
                                                     const ValueType &new_value) {
   int index = ValueIndex(old_value);
 
-  assert(index != -1);
+  //assert(index != -1);
 
   int i;
   for (i = GetSize() - 1; i > index; i--) {
