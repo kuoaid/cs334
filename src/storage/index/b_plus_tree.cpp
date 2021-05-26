@@ -156,7 +156,7 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
     splitted->SetNextPageId(leaf->GetNextPageId());
     leaf->SetNextPageId(splitted->GetPageId());
     splitted->SetParentPageId(leaf->GetParentPageId());
-    
+
     InsertIntoParent(leaf, splitted->KeyAt(0), splitted, transaction);
   }
   UnLatchPageSet(transaction, 0);
@@ -404,6 +404,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   Print(buffer_pool_manager_);
+  printf("\n");
   page_id_t newId;
   Page *page = buffer_pool_manager_->NewPage(&newId);
 
