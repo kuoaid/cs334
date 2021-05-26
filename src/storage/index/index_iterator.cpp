@@ -31,11 +31,6 @@ bool INDEXITERATOR_TYPE::isEnd() {
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
-  // printf("leaf_ == nullptr: %i\n", leaf_ == nullptr);
-  // printf("itr.index_ == 0: %i\n", itr.index_ == 0);
-  // printf("itr.leaf_->GetPageId() == INVALID_PAGE_ID: %i\n", itr.leaf_->GetPageId() == INVALID_PAGE_ID);
-  // printf("itr.index_ == index_: %i\n", itr.index_ == index_);
-  // printf("itr.leaf_->GetPageId() == leaf_->GetPageId(): %i\n", itr.leaf_->GetPageId() == leaf_->GetPageId());
   return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) || (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
 }
 

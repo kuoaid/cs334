@@ -36,8 +36,6 @@ TEST(BPlusTreeTests, InsertTest1) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
-    printf("\nTHERE\n");
-    printf("key: %lld\n", key);
     tree.Insert(index_key, rid, transaction);
   }
 
@@ -45,11 +43,7 @@ TEST(BPlusTreeTests, InsertTest1) {
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
-    printf("\nHERE\n");
-    printf("key: %lld\n", key);
     tree.GetValue(index_key, &rids);
-    printf("rids.size() in insert test: %lu\n", rids.size());
-    printf("1\n");
     EXPECT_EQ(rids.size(), 1);
 
     int64_t value = key & 0xFFFFFFFF;
@@ -63,15 +57,12 @@ TEST(BPlusTreeTests, InsertTest1) {
   auto iterator = tree.Begin(index_key);
   // LOG_INFO("iterator != tree.end(): %i", iterator != tree.end());
   for (auto iterator = tree.Begin(index_key); iterator != tree.end(); ++iterator) {
-    printf("!\n");
     auto location = (*iterator).second;
     EXPECT_EQ(location.GetPageId(), 0);
     EXPECT_EQ(location.GetSlotNum(), current_key);
     current_key = current_key + 1;
     count++;
-    // printf("iterator != tree.end(): %i\n", iterator != tree.end());
   }
-  printf("survived\n");
   EXPECT_EQ(current_key, keys.size() + 1);
   bpm->UnpinPage(HEADER_PAGE_ID, true);
   delete key_schema;
@@ -106,7 +97,6 @@ TEST(BPlusTreeTests, InsertTest2) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
-    printf("THERE\n");
     tree.Insert(index_key, rid, transaction);
   }
 
@@ -114,7 +104,6 @@ TEST(BPlusTreeTests, InsertTest2) {
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
-    printf("HERE\n");
     tree.GetValue(index_key, &rids);
     EXPECT_EQ(rids.size(), 1);
 

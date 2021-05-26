@@ -109,29 +109,15 @@ const MappingType &B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const {
-  //printf("IN leaf page LOOKUP\n");
   int size = GetSize();
-  //printf("1\n");
-  //printf("size: %i\n", size);
   if(size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size-1)) > 0){
-    //printf("size == 0: %i\n", size == 0);
-    //printf("comparator(key, KeyAt(0)) < 0: %i\n", comparator(key, KeyAt(0)) < 0);
-    //printf("comparator(key, KeyAt(size-1)) > 0: %i\n", comparator(key, KeyAt(size-1)) > 0);
-    printf("lookup2\n");
     return false;
   }
-  //printf("3\n");
   int key_index = KeyIndex(key, comparator);
-  //printf("4\n");
   if(comparator(array[key_index].first, key)==0){
-    //printf("5\n");
     *value = array[key_index].second;
-    //LOG_INFO("Leaf page look up,  index: %d", key_index);
-    printf("lookup3\n");
-    printf("key_index: %i\n", key_index);
     return true;
   }
-  printf("lookup4\n");
   return false;
 }
 
@@ -154,14 +140,7 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &valu
 
   array[targetIndex].first = key;
   array[targetIndex].second = value;
-  //printf("7\n");
   IncreaseSize(1);
-  // printf("current state of array in the leaf:\n");
-  // for (int j = 0; j < GetSize(); j++) {
-  //   printf("number: ");
-  //   printf("%lld", array[j].first.ToString());
-  //   printf("\n");
-  // }
 
   return GetSize();
 }
@@ -188,22 +167,6 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalfTo(BPlusTreeLeafPage *recipient) {
     i++;
     j++;
   }
-
-  //for debug
-  // printf("sate of original array:\n");
-  // for (int j = 0; j < GetSize(); j++) {
-  //   printf("number: ");
-  //   printf("%lld", array[j].first.ToString());
-  //   printf("\n");
-  // }
-  // //print original array
-  // printf("sate of recipient array:\n");
-  // for (int j = 0; j < GetSize(); j++) {
-  //   printf("number: ");
-  //   printf("%lld", recipient->array[j].first.ToString());
-  //   printf("\n");
-  // }
-
   // 重新设置大小
   SetSize(copyStartIndex);
   recipient->SetSize(lastIndex - copyStartIndex + 1);
