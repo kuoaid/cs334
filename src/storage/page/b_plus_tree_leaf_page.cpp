@@ -194,7 +194,7 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &
   for (int i = 0; i < GetSize(); i++) {
     if (comparator(array[i].first, key) == 0) {
       int targetIndex = KeyIndex(key, comparator);
-      for (int i = targetIndex+1; i < GetSize(); i++) {
+      for (int i = targetIndex + 1; i < GetSize(); i++) {
         array[i - 1].first = array[i].first;
         array[i - 1].second = array[i].second;
       }
