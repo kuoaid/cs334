@@ -404,7 +404,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   //Print(buffer_pool_manager_);
-  printf("\n");
+  //printf("\n");
   page_id_t newId;
   Page *page = buffer_pool_manager_->NewPage(&newId);
 
@@ -414,7 +414,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
   // accessing the root
   LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
   leaf->Init(INVALID_PAGE_ID, INVALID_PAGE_ID, leaf_max_size_);
-  //buffer_pool_manager_->UnpinPage(newId, false);
+  buffer_pool_manager_->UnpinPage(newId, false);
   return INDEXITERATOR_TYPE(leaf, 0, buffer_pool_manager_);
 }
 /*****************************************************************************
