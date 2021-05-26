@@ -103,6 +103,7 @@ Page *BufferPoolManager::NewPage(page_id_t *page_id) {
   std::lock_guard<std::mutex> guardo(latch_);
   auto new_page_id = disk_manager_->AllocatePage();
   if (free_list_.empty() && replacer_->Size() == 0) {
+    printf("All pinned\n");
     return nullptr;
   }
   frame_id_t frame_id = FindFrameId();
