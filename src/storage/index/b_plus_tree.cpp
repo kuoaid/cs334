@@ -45,6 +45,7 @@ bool BPLUSTREE_TYPE::IsEmpty() const { return root_page_id_ == INVALID_PAGE_ID; 
 
 INDEX_TEMPLATE_ARGUMENTS
 bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction) {
+  printf("result->size(): %lu\n", result->size());
   if (IsEmpty()) {
     return false;
   }
@@ -57,6 +58,8 @@ bool BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   if (res) {
     //printf("added\n");
     result->push_back(*container);
+  } else {
+    printf("not added\n");
   }
   if (transaction != nullptr) {
     UnLatchPageSet(transaction, false);
@@ -112,7 +115,9 @@ void BPLUSTREE_TYPE::StartNewTree(const KeyType &key, const ValueType &value) {
   LeafPage *root = reinterpret_cast<LeafPage *>(newRoot->GetData());
 
   // init
-  root->Init(newId, INVALID_PAGE_ID, internal_max_size_*2);
+  printf("internal_max_size_: %i\n", internal_max_size_);
+  printf("leaf_max_size_: %i\n", leaf_max_size_);
+  root->Init(newId, INVALID_PAGE_ID, leaf_max_size_);
   buffer_pool_manager_->UnpinPage(newId, false);
   // update tree info
   root_page_id_ = newId;
@@ -151,9 +156,18 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
   if(leaf->GetSize() < leaf->GetMaxSize()) {
     //printf("Size of leaf: %i\n",leaf->GetSize());
     //printf("MaxSize of leaf: %i\n",leaf->GetMaxSize());
+    printf("leaf->GetSize(): %i\n", leaf->GetSize());
+    printf("leaf->GetMaxSize(): %i\n", leaf->GetMaxSize());
     leaf->Insert(key, value, comparator_);// TODO: add unlatch
     //printf("leaf->GetSize() after insert: %i\n", leaf->GetSize());
+    printf("sate of the array\n");
+    for (int j = 0; j < leaf->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", leaf->KeyAt(j).ToString());
+        printf("\n");
+      }
   }else{
+    printf("need to split\n");
     //printf("entered SPLITTING REQUIRED.\n");
     LeafPage *splitted = reinterpret_cast<LeafPage *>(Split(leaf));
     //printf("setting next page ID's\n");
@@ -166,10 +180,71 @@ bool BPLUSTREE_TYPE::InsertIntoLeaf(const KeyType &key, const ValueType &value, 
 
     if(comparator_(key, splitted->KeyAt(0)) < 0) {
       //printf("leaf insert\n");
+      printf("Before insert:\n");
+      printf("insert into original leaf\n");
+      printf("sate of original array:\n");
+      for (int j = 0; j < leaf->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", leaf->KeyAt(j).ToString());
+        printf("\n");
+      }
+      //print original array
+      printf("sate of splitted array:\n");
+      for (int j = 0; j < splitted->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", splitted->KeyAt(j).ToString());
+        printf("\n");
+      }
       leaf->Insert(key, value, comparator_);
+      printf("After insert:\n");
+      printf("insert into original leaf\n");
+      printf("sate of original array:\n");
+      for (int j = 0; j < leaf->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", leaf->KeyAt(j).ToString());
+        printf("\n");
+      }
+      //print original array
+      printf("sate of splitted array:\n");
+      for (int j = 0; j < splitted->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", splitted->KeyAt(j).ToString());
+        printf("\n");
+      }
     } else {
       //printf("splitted insert\n");
+      printf("insert into new leaf\n");
+      printf("Before insert:\n");
+      printf("insert into original leaf\n");
+      printf("sate of original array:\n");
+      for (int j = 0; j < leaf->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", leaf->KeyAt(j).ToString());
+        printf("\n");
+      }
+      //print original array
+      printf("sate of splitted array:\n");
+      for (int j = 0; j < splitted->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", splitted->KeyAt(j).ToString());
+        printf("\n");
+      }
       splitted->Insert(key, value, comparator_);
+      printf("After insert:\n");
+      printf("insert into original leaf\n");
+      printf("sate of original array:\n");
+      for (int j = 0; j < leaf->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", leaf->KeyAt(j).ToString());
+        printf("\n");
+      }
+      //print original array
+      printf("sate of splitted array:\n");
+      for (int j = 0; j < splitted->GetSize(); j++) {
+        printf("number: ");
+        printf("%lld", splitted->KeyAt(j).ToString());
+        printf("\n");
+      }
     }
   }
   //printf("NEW size of leaf: %i\n",leaf->GetSize());
@@ -202,6 +277,7 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
     
     // move half of the entries in node to the new node.
     LeafPage *nodeAsLeaf = reinterpret_cast<LeafPage *>(node);
+    printf("splitting here\n");
     nodeAsLeaf->MoveHalfTo(newLeaf);
 
     // Return the new node.
@@ -231,6 +307,7 @@ BPlusTreePage *BPLUSTREE_TYPE::Split(BPlusTreePage *node) {
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &key, BPlusTreePage *new_node,
                                       Transaction *transaction) {
+  printf("old_node->IsRootPage(): %i\n", old_node->IsLeafPage());
   if (old_node->IsRootPage()) {
 
     // make a new root.
@@ -258,6 +335,7 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
   new_node->SetParentPageId(parentId);
   // test if parent node has at least 1 spot left.
   if (parentNode->GetSize() < parentNode->GetMaxSize()) {// does not exceed
+    printf("we are here?\n");
     parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());// insert into copy
     buffer_pool_manager_->UnpinPage(old_node->GetPageId(), true);
     buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
@@ -266,9 +344,11 @@ void BPLUSTREE_TYPE::InsertIntoParent(BPlusTreePage *old_node, const KeyType &ke
     InternalPage *splittedParent = reinterpret_cast<InternalPage *>(Split(parentNode));
     splittedParent->SetParentPageId(parentNode->GetParentPageId());
     if(comparator_(key, splittedParent->KeyAt(0)) < 0) {
+      printf("or here?\n");
       parentNode->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
       new_node->SetParentPageId(parentNode->GetPageId());
     } else {
+      printf("here?\n");
       splittedParent->InsertNodeAfter(old_node->GetPageId(), key, new_node->GetPageId());
       new_node->SetParentPageId(splittedParent->GetPageId());
     }
@@ -451,8 +531,9 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
     return nullptr;
   }
   page_id_t page_id= root_page_id_;
-
+  printf("root_page_id: %i\n", root_page_id_);
   Page *page = buffer_pool_manager_->FetchPage(page_id);
+  printf("page->page_id_ before loop (should be root_page_id_: %i\n", page->GetPageId());
   BPlusTreePage *bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   if (!root_id_mutex_.try_lock()) {
     //printf("locked\n");
@@ -472,18 +553,32 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
     transaction->AddIntoPageSet(page);
   }
 
-  page_id_t nextDest;
+  page_id_t nextDest = 0;
   while(!bppage->IsLeafPage()){
+    printf("inloop\n");
     //printf("1\n");
     InternalPage *internal = static_cast<InternalPage *>(bppage);
     if (leftMost) {
       nextDest = internal->ValueAt(0);
     } else  {
+      printf("internal->GetSize(): %i\n", internal->GetSize());
+      printf("state of internal node:\n");
+      for (int j = 0; j < internal->GetSize(); j++) {
+        printf("key: ");
+        printf("%lld", internal->KeyAt(j).ToString());
+        printf("\n");
+        printf("value: ");
+        printf("%d", internal->ValueAt(j));
+        printf("\n");
+      }
+      printf("last message\n");
       nextDest = internal->Lookup(key, comparator_);
     }
     Page *lastPage = page;
     BPlusTreePage *lastBp = bppage;
-    Page *page = buffer_pool_manager_->FetchPage(nextDest);
+    printf("nextDest: %i\n", nextDest);
+    page = buffer_pool_manager_->FetchPage(nextDest);
+    printf("page->page_id_ in loop: %i\n", page->GetPageId());
     bppage = reinterpret_cast<BPlusTreePage *>(page->GetData());
     if (!root_id_mutex_.try_lock()) {
     //printf("locked\n");
@@ -538,10 +633,12 @@ Page *BPLUSTREE_TYPE::FindLeafPage(const KeyType &key, bool leftMost, int indica
     }
     page_id = nextDest;
   }
+  printf("out of loop\n");
   //printf("14\n");
   root_id_mutex_.unlock();
-  buffer_pool_manager_->UnpinPage(page_id, true); 
+  //buffer_pool_manager_->UnpinPage(page_id, true); 
   //printf("15\n");
+  printf("page.page_id_ outsdie of loop: %i\n", page->GetPageId());
   return page;
 }
 
@@ -741,7 +838,7 @@ void BPLUSTREE_TYPE::UnLatchPageSet(Transaction *transaction, int indicator) {
     if (bp->IsRootPage()) {
       root_id_mutex_.unlock();
     }
-    buffer_pool_manager_->UnpinPage(front->GetPageId(), true);
+    //buffer_pool_manager_->UnpinPage(front->GetPageId(), true);
   }
 }
 

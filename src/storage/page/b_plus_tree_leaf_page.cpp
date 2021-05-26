@@ -53,10 +53,17 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) { next_pa
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const {
+  int compareResult;
+  for (int i = 0; i < GetSize(); i++) {
+    compareResult = comparator(array[i].first, key);
+    if (compareResult >= 0) {
+      return i;
+    }
+  }
+
   int left = 0;
   int right = GetSize() - 1;
   int mid;
-  int compareResult;
   while (left <= right) {
     mid = left + (right - left) / 2;
     compareResult = comparator(array[mid].first, key);
@@ -107,7 +114,10 @@ bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, co
   //printf("1\n");
   //printf("size: %i\n", size);
   if(size == 0 || comparator(key, KeyAt(0)) < 0 || comparator(key, KeyAt(size-1)) > 0){
-    //printf("2\n");
+    //printf("size == 0: %i\n", size == 0);
+    //printf("comparator(key, KeyAt(0)) < 0: %i\n", comparator(key, KeyAt(0)) < 0);
+    //printf("comparator(key, KeyAt(size-1)) > 0: %i\n", comparator(key, KeyAt(size-1)) > 0);
+    printf("lookup2\n");
     return false;
   }
   //printf("3\n");
@@ -117,10 +127,11 @@ bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, co
     //printf("5\n");
     *value = array[key_index].second;
     //LOG_INFO("Leaf page look up,  index: %d", key_index);
-    //printf("6\n");
+    printf("lookup3\n");
+    printf("key_index: %i\n", key_index);
     return true;
   }
-  //printf("7\n");
+  printf("lookup4\n");
   return false;
 }
 
@@ -145,6 +156,13 @@ int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &valu
   array[targetIndex].second = value;
   //printf("7\n");
   IncreaseSize(1);
+  // printf("current state of array in the leaf:\n");
+  // for (int j = 0; j < GetSize(); j++) {
+  //   printf("number: ");
+  //   printf("%lld", array[j].first.ToString());
+  //   printf("\n");
+  // }
+
   return GetSize();
 }
 
@@ -170,6 +188,21 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalfTo(BPlusTreeLeafPage *recipient) {
     i++;
     j++;
   }
+
+  //for debug
+  // printf("sate of original array:\n");
+  // for (int j = 0; j < GetSize(); j++) {
+  //   printf("number: ");
+  //   printf("%lld", array[j].first.ToString());
+  //   printf("\n");
+  // }
+  // //print original array
+  // printf("sate of recipient array:\n");
+  // for (int j = 0; j < GetSize(); j++) {
+  //   printf("number: ");
+  //   printf("%lld", recipient->array[j].first.ToString());
+  //   printf("\n");
+  // }
 
   // 重新设置大小
   SetSize(copyStartIndex);

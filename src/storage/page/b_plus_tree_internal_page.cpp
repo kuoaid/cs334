@@ -58,6 +58,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const {
+  printf("Value: %i\n", value);
   for (int i = 0; i < GetSize(); i++) {
     if (value == ValueAt(i)) {
       return i;
@@ -88,6 +89,21 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const {
 INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
   int compareResult;
+  compareResult = comparator(array[1].first, key);
+  if (compareResult >= 0) { // if key is less than or equal to array[1].first
+    printf("array[0].second returned: %i", array[0].second);
+    return array[0].second;
+  }
+  for (int i = 0; i < GetSize() - 1; i++) {
+    compareResult = comparator(array[i+1].first, key);
+    if (compareResult >= 0) {
+      printf("array[i].second returned: %i", array[i].second);
+      return array[i].second;
+    }
+  }
+  printf("array[GetSize()-1].second returned: %i", array[GetSize()-1].second);
+  return array[GetSize() - 1].second;
+
   if (GetSize() == 1) {
     compareResult = comparator(array[0].first, key);
     if (compareResult > 0) {

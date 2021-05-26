@@ -36,6 +36,8 @@ TEST(BPlusTreeTests, InsertTest1) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
+    printf("\nTHERE\n");
+    printf("key: %lld\n", key);
     tree.Insert(index_key, rid, transaction);
   }
 
@@ -43,7 +45,11 @@ TEST(BPlusTreeTests, InsertTest1) {
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
+    printf("\nHERE\n");
+    printf("key: %lld\n", key);
     tree.GetValue(index_key, &rids);
+    printf("rids.size() in insert test: %lu\n", rids.size());
+    printf("1\n");
     EXPECT_EQ(rids.size(), 1);
 
     int64_t value = key & 0xFFFFFFFF;
@@ -98,6 +104,7 @@ TEST(BPlusTreeTests, InsertTest2) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
+    printf("THERE\n");
     tree.Insert(index_key, rid, transaction);
   }
 
@@ -105,6 +112,7 @@ TEST(BPlusTreeTests, InsertTest2) {
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
+    printf("HERE\n");
     tree.GetValue(index_key, &rids);
     EXPECT_EQ(rids.size(), 1);
 
