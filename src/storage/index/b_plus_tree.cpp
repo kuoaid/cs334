@@ -403,7 +403,7 @@ INDEXITERATOR_TYPE BPLUSTREE_TYPE::Begin(const KeyType &key) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_TYPE::end() {
-  Print(buffer_pool_manager_);
+  //Print(buffer_pool_manager_);
   printf("\n");
   page_id_t newId;
   Page *page = buffer_pool_manager_->NewPage(&newId);
