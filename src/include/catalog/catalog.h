@@ -83,7 +83,6 @@ class Catalog {
         new TableMetadata(schema, table_name, std::unique_ptr<TableHeap>(new_table), new_table_id);
     tables_.insert({new_table_id, std::unique_ptr<TableMetadata>(new_table_metadata)});
     names_.insert({table_name, new_table_id});
-
     return new_table_metadata;
   }
 
