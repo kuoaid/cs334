@@ -695,7 +695,7 @@ std::string BPLUSTREE_TYPE::ToString(BPlusTreePage *page, BufferPoolManager *bpm
 // indicator: -1: delete, 0: insert, 1: search
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::UnLatchPageSet(Transaction *transaction, int indicator) {
-  while (transaction->GetPageSet()->size() > 0) {
+  while (!transaction->GetPageSet()->empty()) {
     Page *front = transaction->GetPageSet()->front();
     BPlusTreePage *bp = reinterpret_cast<BPlusTreePage *>(front->GetData());
     transaction->GetPageSet()->pop_front();

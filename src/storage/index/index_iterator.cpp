@@ -16,11 +16,7 @@ INDEXITERATOR_TYPE::IndexIterator(B_PLUS_TREE_LEAF_PAGE_TYPE *leaf, int index, B
     : leaf_(leaf), index_(index), bpm_(bpm) {}
 
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE::~IndexIterator() {
-  if (leaf_ != nullptr) {
-    ;
-  }
-}
+INDEXITERATOR_TYPE::~IndexIterator() = default;
 
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::isEnd() {
@@ -30,6 +26,7 @@ bool INDEXITERATOR_TYPE::isEnd() {
   }
   printf("leaf != nullptr\n");
   printf("index_: %i\n", index_);
+  printf("leaf->GetPageId(): %i\n", leaf_->GetPageId());
   printf("leaf_->GetSize(): %i\n", leaf_->GetSize());
   printf("leaf_->GetNextPageId() == INVALID_PAGE_ID: %i\n", leaf_->GetNextPageId() == INVALID_PAGE_ID);
   printf("\n");
@@ -39,7 +36,7 @@ bool INDEXITERATOR_TYPE::isEnd() {
 INDEX_TEMPLATE_ARGUMENTS
 bool INDEXITERATOR_TYPE::operator==(const IndexIterator &itr) const {
   return (leaf_ == nullptr && itr.index_ == 0 && itr.leaf_->GetPageId() == INVALID_PAGE_ID) ||
-         (itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
+         (leaf_ != nullptr && itr.index_ == index_ && itr.leaf_->GetPageId() == leaf_->GetPageId());
 }
 
 INDEX_TEMPLATE_ARGUMENTS
