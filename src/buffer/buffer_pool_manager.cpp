@@ -34,7 +34,6 @@ BufferPoolManager::~BufferPoolManager() {
 }
 
 Page *BufferPoolManager::FetchPage(page_id_t page_id) {
-<<<<<<< HEAD
   std::lock_guard<std::mutex> guardo(latch_);
   if (page_table_.find(page_id) != page_table_.end()) {
     auto frame_id = page_table_[page_id];
@@ -53,8 +52,6 @@ Page *BufferPoolManager::FetchPage(page_id_t page_id) {
 
   return nullptr;
 
-=======
->>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
   // 1.     Search the page table for the requested page (P).
   // 1.1    If P exists, pin it and return it immediately.
   // 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.
@@ -65,7 +62,6 @@ Page *BufferPoolManager::FetchPage(page_id_t page_id) {
   // 4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
 }
 
-<<<<<<< HEAD
 bool BufferPoolManager::UnpinPage(page_id_t page_id, bool is_dirty) {
   std::lock_guard<std::mutex> guardo(latch_);
   if (page_table_.find(page_id) == page_table_.end()) {
@@ -96,13 +92,6 @@ bool BufferPoolManager::FlushPage(page_id_t page_id) {
   disk_manager_->WritePage(page_id, page->GetData());
   page->is_dirty_ = false;
   return true;
-=======
-bool BufferPoolManager::UnpinPage(page_id_t page_id, bool is_dirty) { return false; }
-
-bool BufferPoolManager::FlushPage(page_id_t page_id) {
-  // Make sure you call DiskManager::WritePage!
-  return false;
->>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
 }
 
 Page *BufferPoolManager::NewPage(page_id_t *page_id) {
@@ -150,14 +139,10 @@ bool BufferPoolManager::DeletePage(page_id_t page_id) {
 }
 
 void BufferPoolManager::FlushAllPages() {
-<<<<<<< HEAD
   // std::lock_guard<std::mutex> guardo(latch_);
   for (size_t i = 0; i < pool_size_; i++) {
     FlushPage(pages_[i].page_id_);
   }
-=======
-  // You can do it!
->>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
 }
 
 }  // namespace bustub

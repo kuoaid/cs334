@@ -19,10 +19,6 @@
 namespace bustub {
 
 LRUReplacer::LRUReplacer() = default;
-<<<<<<< HEAD
-=======
-
->>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
 LRUReplacer::~LRUReplacer() = default;
 
 std::mutex latch;
