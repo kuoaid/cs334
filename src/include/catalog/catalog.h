@@ -77,24 +77,24 @@ class Catalog {
    */
   TableMetadata *CreateTable(Transaction *txn, const std::string &table_name, const Schema &schema) {
     BUSTUB_ASSERT(names_.count(table_name) == 0, "Table names should be unique!");
-
-    table_oid_t new_table_id = next_table_oid_;
+    table_oid_t new_table_id = next_table_oid_++;
     TableHeap *new_table = new TableHeap(bpm_, lock_manager_, log_manager_, txn);
+    TableMetadata *new_table_metadata =
+        new TableMetadata(schema, table_name, std::unique_ptr<TableHeap>(new_table), new_table_id);
+    tables_.insert({new_table_id, std::unique_ptr<TableMetadata>(new_table_metadata)});
+    names_.insert({table_name, new_table_id});
 
-
-    return new TableMetadata(schema, table_name, std::unique_ptr<TableHeap>(new_table), new_table_id);
+    return new_table_metadata;
   }
 
   /** @return table metadata by name */
   TableMetadata *GetTable(const std::string &table_name) {
-    table_oid_t target = names_[table_name];
-    return tables_[target].release();
+    table_oid_t target = names_.at(table_name);
+    return tables_.at(target).get();
   }
 
   /** @return table metadata by oid */
-  TableMetadata *GetTable(table_oid_t table_oid) { 
-    return tables_[table_oid].release();
-  }
+  TableMetadata *GetTable(table_oid_t table_oid) { return tables_.at(table_oid).get(); }
 
   /**
    * Create a new index, populate existing data of the table and return its metadata.
