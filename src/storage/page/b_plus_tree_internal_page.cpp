@@ -25,6 +25,7 @@ namespace bustub {
  * max page size.
  */
 INDEX_TEMPLATE_ARGUMENTS
+<<<<<<< HEAD
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id, int max_size) {
   SetPageType(IndexPageType::INTERNAL_PAGE);
   SetSize(0);
@@ -32,6 +33,9 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id
   SetParentPageId(parent_id);
   SetMaxSize(max_size);
 }
+=======
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id, int max_size) {}
+>>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
 
 /*
  * Get the key stored at index.
@@ -39,8 +43,13 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id
 INDEX_TEMPLATE_ARGUMENTS
 KeyType B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt(int index) const {
   // replace with your own code (fill in the curly braces with the appropriate key value)
+<<<<<<< HEAD
   assert(index >= 0 && index < GetSize());
   return array[index].first;
+=======
+  KeyType key{};
+  return key;
+>>>>>>> 3f4e886bac77b68a823533807f66cca0ed71e3da
 }
 
 /*

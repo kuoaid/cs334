@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # For clang-tidy.
 set(BUILD_SHARED_LIBS ON)
+set(CMAKE_C_COMPILER_NAMES clang-8 clang gcc icc cc)
+set(CMAKE_CXX_COMPILER_NAMES clang++-8 clang++ g++ icpc c++ cxx)
 set(CMAKE_CXX_STANDARD 17)              # Compile as C++17
 set(CMAKE_CXX_STANDARD_REQUIRED ON)     # Require C++17 support
 
@@ -167,5 +169,6 @@ add_custom_target(check-clang-tidy
         ${BUSTUB_BUILD_SUPPORT_DIR}/run_clang_tidy.py                     # run LLVM's clang-tidy script
         -clang-tidy-binary ${CLANG_TIDY_BIN}                              # using our clang-tidy binary
         -p ${CMAKE_BINARY_DIR}                                            # using cmake's generated compile commands
+        -j 2                                                              # limit to 2 cores        
         )
 add_dependencies(check-clang-tidy gtest bustub_shared)                    # needs gtest headers, compile_commands.json

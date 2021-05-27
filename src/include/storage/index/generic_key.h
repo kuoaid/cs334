@@ -32,7 +32,7 @@ class GenericKey {
   inline void SetFromKey(const Tuple &tuple) {
     // intialize to 0
     memset(data_, 0, KeySize);
-    memcpy(data_, tuple.GetData(), tuple.GetLength());
+    memcpy(data_, tuple.GetData(), KeySize);
   }
 
   // NOTE: for test purpose only
@@ -57,12 +57,17 @@ class GenericKey {
 
   // NOTE: for test purpose only
   // interpret the first 8 bytes as int64_t from data vector
-  inline int64_t ToString() const { return *reinterpret_cast<int64_t *>(const_cast<char *>(data_)); }
+  inline int64_t ToInt64() const {
+    if (KeySize < 8) {
+      return *reinterpret_cast<int32_t *>(const_cast<char *>(data_));
+    }
+    return *reinterpret_cast<int64_t *>(const_cast<char *>(data_));
+  }
 
   // NOTE: for test purpose only
   // interpret the first 8 bytes as int64_t from data vector
   friend std::ostream &operator<<(std::ostream &os, const GenericKey &key) {
-    os << key.ToString();
+    os << key.ToInt64();
     return os;
   }
 
