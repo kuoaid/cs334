@@ -30,9 +30,7 @@ void InsertExecutor::Init() {
 }
 
 bool InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) {
-
   Schema *schema = &GetExecutorContext()->GetCatalog()->GetTable(this->plan_->GetTableOid())->schema_;
-
   if (plan_->IsRawInsert()) {
     auto size = plan_->RawValues().size();
     for (size_t index = 0; index < size; index++) {
