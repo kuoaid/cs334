@@ -23,7 +23,7 @@ SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNod
 void SeqScanExecutor::Init() {
   // LOG_INFO("LOOK AT ME: init entered");
   table_heap_ = table_meta_->table_.get();
-  TableIterator ite_ = table_heap_->Begin(exec_ctx_->GetTransaction());
+  ite_ = table_heap_->Begin(exec_ctx_->GetTransaction());
   // LOG_INFO("LOOK AT ME: finish initted");
 }
 
