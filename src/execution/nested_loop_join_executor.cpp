@@ -20,7 +20,7 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
 
 void NestedLoopJoinExecutor::Init() {
   Tuple left_tuple;
-  Tuple right_tuple; 
+  Tuple right_tuple;
   Tuple result_tuple;
   RID left_rid;
   RID right_rid;
