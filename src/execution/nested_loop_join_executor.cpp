@@ -22,7 +22,7 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
 
 void NestedLoopJoinExecutor::Init() {
   Tuple left_tuple, right_tuple, result_tuple;
-  RID rid, left_rid, right_rid;
+  RID left_rid, right_rid;
   while (left_->Next(&left_tuple, &left_rid)) {
     // LOG_INFO("left loop");
     right_->Init();  // do this to reset right pointer to its original position each time.
