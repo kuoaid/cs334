@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 #include <vector>
-
 #include "execution/executors/nested_loop_join_executor.h"
+
 
 namespace bustub {
 
