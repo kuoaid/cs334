@@ -19,8 +19,11 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
     : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left_executor)), right_(std::move(right_executor)) {}
 
 void NestedLoopJoinExecutor::Init() {
-  Tuple left_tuple, right_tuple, result_tuple;
-  RID left_rid, right_rid;
+  Tuple left_tuple;
+  Tuple right_tuple; 
+  Tuple result_tuple;
+  RID left_rid;
+  RID right_rid;
   while (left_->Next(&left_tuple, &left_rid)) {
     // LOG_INFO("left loop");
     right_->Init();  // do this to reset right pointer to its original position each time.
@@ -42,7 +45,7 @@ void NestedLoopJoinExecutor::Init() {
           // LOG_INFO("2nd for");
           result_vector.push_back(right_tuple.GetValue(plan_->GetRightPlan()->OutputSchema(), index));
         }
-        result_tuples.push_back(Tuple(result_vector, GetOutputSchema()));
+        result_tuples.emplace_back(Tuple(result_vector, GetOutputSchema()));
         LOG_INFO("size %li", result_tuples.size());
       }
     }
@@ -50,7 +53,7 @@ void NestedLoopJoinExecutor::Init() {
 }
 
 bool NestedLoopJoinExecutor::Next(Tuple *tuple, RID *rid) {
-  if (result_tuples.size() == 0) {
+  if (result_tuples.empty()) {
     return false;
   }
   *tuple = result_tuples.back();
