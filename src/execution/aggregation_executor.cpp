@@ -38,15 +38,15 @@ void AggregationExecutor::Init() {
 
 bool AggregationExecutor::Next(Tuple *tuple, RID *rid) {
   while (aht_iterator_ != aht_.End()) {
-    const auto &agg_key = aht_iterator_.Key();
-    const auto &agg_val = aht_iterator_.Val();
+    const auto &aggregate_key = aht_iterator_.Key();
+    const auto &aggregate_val = aht_iterator_.Val();
     ++aht_iterator_;
     // order matters!
     if ((plan_->GetHaving() == nullptr) ||
-        (plan_->GetHaving()->EvaluateAggregate(agg_key.group_bys_, agg_val.aggregates_).GetAs<bool>())) {
+        (plan_->GetHaving()->EvaluateAggregate(aggregate_key.group_bys_, aggregate_val.aggregates_).GetAs<bool>())) {
       std::vector<Value> result;
       for (auto &column : GetOutputSchema()->GetColumns()) {
-        result.push_back(column.GetExpr()->EvaluateAggregate(agg_key.group_bys_, agg_val.aggregates_));
+        result.push_back(column.GetExpr()->EvaluateAggregate(aggregate_key.group_bys_, aggregate_val.aggregates_));
       }
       *tuple = Tuple(result, GetOutputSchema());
       return true;
