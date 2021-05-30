@@ -9,9 +9,8 @@
 // Copyright (c) 2015-19, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
-#include <vector>
 #include "execution/executors/nested_loop_join_executor.h"
-
+#include <vector>
 
 namespace bustub {
 
